@@ -47,7 +47,7 @@ npx cross-env DOCAYA_E2E_URL=https://ojashwas.github.io/intdocayaprototype/ npm 
 
 ## Static hosting
 
-`npm run build` produces `dist/`. Preview with `npm run preview` or serve from a static host. A manual GitHub Pages workflow is included; see the demo guide. Pushing source does not itself publish a website.
+`npm run build` produces `dist/`. Preview with `npm run preview` or serve from a static host. GitHub Pages publishes the tested commit after the Prototype quality workflow succeeds for a push to main. Manual publishing remains available; see the demo guide.
 
 Prototype repository: [Ojashwas/intdocayaprototype](https://github.com/Ojashwas/intdocayaprototype).
 

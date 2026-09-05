@@ -54,4 +54,4 @@ Each browser/origin has independent state. There is no shared collaboration or r
 
 ## Hosted client demo
 
-The live prototype is available at **https://ojashwas.github.io/intdocayaprototype/**. GitHub Pages is configured to use GitHub Actions. To publish later changes, run **Publish prototype to GitHub Pages** after the quality workflow succeeds. It builds with `/intdocayaprototype/` as the asset base and uploads only `dist/`. It does not upload browser state. Each client starts with their own sample workspace.
+The live prototype is available at **https://ojashwas.github.io/intdocayaprototype/**. GitHub Pages is configured to use GitHub Actions. Push changes to `main`: **Publish prototype to GitHub Pages** runs after **Prototype quality** succeeds and builds that exact tested commit. Pull-request runs do not publish. Manual publishing remains available from GitHub Actions. It builds with `/intdocayaprototype/` as the asset base and uploads only `dist/`. It does not upload browser state. Each client starts with their own sample workspace.
