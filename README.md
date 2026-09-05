@@ -1,4 +1,50 @@
-# Docaya
+# Docaya prototype
+
+**Docaya · دوكايا · Document Management Intelligence / ذكاء إدارة الوثائق**
+
+An interactive Arabic/English client demonstration with sample records, manual registration, four approval patterns, publishing recovery, cited knowledge search, correspondence, records governance, reporting, administration, audit and client workshop feedback.
+
+## Start the prototype
+
+Requires Node.js 22.13–26 and npm 10–11.
+
+```powershell
+npm ci
+npm start
+```
+
+Open **http://localhost:5173/** and select **Enter demo workspace**. Choose System Administrator to demonstrate every module. Use the language toggle for Arabic/RTL and the persona selector for access rules.
+
+No API, Azure account, credentials or `.env` file is required. Production integrations are explicitly simulated. This is a UI/UX prototype, not a production security or compliance implementation.
+
+See [the workshop walkthrough and M1–M15 coverage matrix](docs/prototype-demo.md) for presentation steps and exact simulation boundaries.
+
+- Original uploads: stored in IndexedDB, limited to 20 MB per file in the browser demo.
+- Records, settings and workshop notes: stored locally and preserved across refresh.
+- Ask Docaya: cited excerpts from accessible, published and indexed sample text; no live AI.
+- Workshop: capture expectations and export CSV. Export notes before resetting demo data.
+
+## Validate the prototype
+
+```powershell
+npm run build
+npm run lint
+npm test
+npm run test:e2e
+```
+
+Browser tests cover registration through cited search and legal holds, role filtering, correspondence, feedback persistence, Arabic/RTL, mobile and an accessibility scan. Local Windows tests use installed Chrome; CI installs Chromium.
+
+## Static hosting
+
+`npm run build` produces `dist/`. Preview with `npm run preview` or serve from a static host. A manual GitHub Pages workflow is included; see the demo guide. Pushing source does not itself publish a website.
+
+Prototype repository: [Ojashwas/intdocayaprototype](https://github.com/Ojashwas/intdocayaprototype).
+
+The default entry point is `src/prototype/PrototypeApp.tsx`. It makes no production API calls.
+
+<details>
+<summary>Legacy connected application reference — not required for the prototype</summary>
 
 Docaya is a secure, bilingual document-governance workspace for controlled records, approvals, notifications, audit, and administration. This repository implements the v1.1 remediation baseline from `Docaya-DMS-Specification.md`.
 
@@ -73,3 +119,5 @@ sync under `server/db/migrations` and `server/db/postgres-migrations`.
 5. Record evidence under the release system; generated credentials, ARM JSON, and evidence output are ignored by Git.
 
 Cloud release gates are not considered passed merely because Bicep compiles. Tenant consent, target-scope validation, reviewed what-if, policy/RBAC evidence, real malware/DLP integration, private DNS verification from the running app, backup/restore rehearsal, and product/security/accessibility/operations approvals remain environment-owned gates.
+
+</details>
