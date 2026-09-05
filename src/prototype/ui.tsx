@@ -12,17 +12,19 @@ export function Modal({
   onClose,
   children,
   wide = false,
+  variant = 'modal',
 }: {
   title: string
   onClose: () => void
   children: ReactNode
   wide?: boolean
+  variant?: 'modal' | 'drawer'
 }) {
   const close = useCallback(onClose, [onClose])
-  const ref = useDialogFocus(close)
+  const ref = useDialogFocus(close, variant !== 'drawer')
   return (
     <div
-      className="p-overlay"
+      className={`p-overlay ${variant === 'drawer' ? 'p-drawer-overlay' : ''}`}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -31,7 +33,7 @@ export function Modal({
         ref={ref}
         className={`p-modal ${wide ? 'wide' : ''}`}
         role="dialog"
-        aria-modal="true"
+        aria-modal={variant !== 'drawer'}
         aria-label={title}
       >
         <header>

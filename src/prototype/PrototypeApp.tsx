@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Bell,
   BookOpen,
-  Bot,
   ChartNoAxesCombined,
   Check,
   ChevronRight,
@@ -59,7 +58,10 @@ import {
   type PageProps,
 } from './Management'
 import { clearOriginals } from './files'
+import { SearchPage, AssistantDock } from './Discovery'
+import { ApprovalQueue } from './ApprovalQueue'
 import './prototype.css'
+import './experience.css'
 type Page =
   | 'home'
   | 'documents'
@@ -103,11 +105,11 @@ const modules = [
   ],
   [
     'M2',
-    'Manual classification',
-    'التصنيف اليدوي',
+    'AI-assisted classification',
+    'التصنيف بمساعدة الذكاء الاصطناعي',
     'documents',
-    'Choose class, sensitivity, department, access scope and approval flow.',
-    'اختر الفئة والحساسية والإدارة ونطاق الوصول ومسار الاعتماد.',
+    'Review automatic suggestions, override any field, and confirm the classification before submission.',
+    'راجع الاقتراحات التلقائية وعدل أي حقل وأكد التصنيف قبل الإرسال.',
   ],
   [
     'M3',
@@ -275,11 +277,13 @@ export default function PrototypeApp() {
       return
     }
     setPage(next)
+    setSelectedId('')
     setMobile(false)
     setGlobalQuery('')
     window.scrollTo(0, 0)
   }
   const open = (record: RecordItem) => {
+    if (page === 'home' && record.status === 'PendingApproval') setPage('workflows')
     setSelectedId(record.id)
     setState((s) => addEvent(s, role, 'Document viewed', 'تم عرض الوثيقة', record.id))
   }
@@ -432,7 +436,7 @@ export default function PrototypeApp() {
       </div>
     )
   return (
-    <div className="p-app">
+    <div className={`p-app ${selected && page === 'workflows' && !registration ? 'd-has-review' : ''}`}>
       <a className="skip-link" href="#prototype-main">
         {t('Skip to content', 'انتقل إلى المحتوى')}
       </a>
@@ -448,7 +452,7 @@ export default function PrototypeApp() {
         <div className="p-workspace-label">
           <span className="p-status-dot" />
           <div>
-            {t('Client demonstration', 'عرض العميل')}
+            {t('UAE · MOI demonstration', 'الإمارات · عرض الداخلية')}
             <small>{t('Enterprise workspace', 'مساحة العمل المؤسسية')}</small>
           </div>
           <span className="p-demo-chip">DEMO</span>
@@ -523,6 +527,7 @@ export default function PrototypeApp() {
             className="p-global-search"
             onSubmit={(e) => {
               e.preventDefault()
+              setSelectedId('')
               setPage('search')
             }}
           >
@@ -536,6 +541,18 @@ export default function PrototypeApp() {
             <kbd>↵</kbd>
           </form>
           <div className="p-topbar-actions">
+            <div className="d-moitag">
+              <span aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
+              <span>
+                <strong>{t('UAE · Ministry of Interior', 'الإمارات · وزارة الداخلية')}</strong>
+                <small>{t('Synthetic demonstration', 'عرض ببيانات تجريبية')}</small>
+              </span>
+            </div>
             <button className="p-language" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
               <Globe2 size={17} />
               {lang === 'en' ? 'العربية' : 'English'}
@@ -571,7 +588,9 @@ export default function PrototypeApp() {
           <span>
             <i />
             {t('Interactive prototype', 'نموذج تفاعلي')}
-            <small>{t('Sample data · integrations simulated', 'بيانات تجريبية · تكاملات محاكاة')}</small>
+            <small>
+              {t('Synthetic MOI data · integrations simulated', 'بيانات داخلية تجريبية · تكاملات محاكاة')}
+            </small>
           </span>
           <div>
             <label>
@@ -798,7 +817,10 @@ export default function PrototypeApp() {
                     <h3>{t('Every step accounted for', 'كل خطوة موثقة')}</h3>
                   </div>
                   <span className="p-subtle">
-                    {t('Manual classification → approved knowledge', 'تصنيف يدوي ← معرفة معتمدة')}
+                    {t(
+                      'AI suggestions → human decisions → trusted knowledge',
+                      'اقتراحات ذكية ← قرارات بشرية ← معرفة موثوقة',
+                    )}
                   </span>
                 </div>
                 <div className="p-lifecycle">
@@ -844,23 +866,7 @@ export default function PrototypeApp() {
           )}
           {page === 'documents' && <RegisterPage {...props} />}
           {page === 'workflows' && (
-            <>
-              <div className="p-note">
-                <Workflow size={18} />
-                {t(
-                  'Open a record → Approval & publishing. Single, sequential, parallel and conditional flows are interactive. Return comments are mandatory.',
-                  'افتح السجل ← الاعتماد والنشر. مسارات فردية وتسلسلية ومتوازية وشرطية تفاعلية. تعليق الإرجاع إلزامي.',
-                )}
-              </div>
-              <div className="p-card no-pad">
-                <DocumentTable
-                  rows={visible.filter((r) => ['PendingApproval', 'Returned', 'Approved'].includes(r.status))}
-                  lang={lang}
-                  t={t}
-                  onOpen={open}
-                />
-              </div>
-            </>
+            <ApprovalQueue rows={visible} selectedId={selected?.id || ''} onOpen={open} lang={lang} t={t} />
           )}
           {page === 'operations' && <Operations {...props} />}
           {page === 'correspondence' && <CorrespondencePage {...props} />}
@@ -976,11 +982,35 @@ export default function PrototypeApp() {
           t={t}
           onClose={() => setSelectedId('')}
           onAction={act}
+          queue={
+            page === 'workflows'
+              ? visible.filter(
+                  (r) =>
+                    ['PendingApproval', 'Returned', 'Approved'].includes(r.status) || r.id === selected.id,
+                )
+              : visible
+          }
+          onSelect={open}
+          reviewMode={page === 'workflows'}
           onEdit={() => {
             setRegistration(selected)
             setSelectedId('')
           }}
           onLog={(action, ar) => setState((s) => addEvent(s, role, action, ar, selected.id))}
+        />
+      )}
+      {!registration && !reset && (
+        <AssistantDock
+          visible={visible}
+          lang={lang}
+          t={t}
+          context={selected}
+          onOpen={open}
+          onSearch={(query) => {
+            setSelectedId('')
+            setGlobalQuery(query)
+            setPage('search')
+          }}
         />
       )}
       {reset && (
@@ -1107,228 +1137,6 @@ function RegisterPage({ visible, lang, t, onOpen }: PageProps) {
           <h3>{t('Controlled document register', 'سجل الوثائق المحكومة')}</h3>
           <span className="p-subtle">
             {rows.length} {t('documents', 'وثائق')}
-          </span>
-        </div>
-        <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} />
-      </div>
-    </>
-  )
-}
-function SearchPage({
-  state,
-  setState,
-  visible,
-  lang,
-  t,
-  onOpen,
-  notify,
-  initialQuery,
-}: PageProps & { initialQuery: string }) {
-  const [query, setQuery] = useState(initialQuery)
-  useEffect(() => setQuery(initialQuery), [initialQuery])
-  const [kind, setKind] = useState('all')
-  const [department, setDepartment] = useState('all')
-  const [sensitivity, setSensitivity] = useState('all')
-  const [question, setQuestion] = useState('')
-  const [answerIds, setAnswerIds] = useState<string[] | null>(null)
-  const published = visible.filter((r) => r.status === 'Published' && r.indexed)
-  const rows = published.filter(
-    (r) =>
-      `${r.title} ${r.titleAr} ${r.summary} ${r.summaryAr} ${r.id} ${r.reference}`
-        .toLowerCase()
-        .includes(query.toLowerCase()) &&
-      (kind === 'all' || r.kind === kind) &&
-      (department === 'all' || r.department === department) &&
-      (sensitivity === 'all' || r.sensitivity === sensitivity),
-  )
-  const ask = (value: string) => {
-    setQuestion(value)
-    const tokens = value
-      .toLowerCase()
-      .split(/\s+/)
-      .filter(
-        (v) => v.length > 2 && !['what', 'the', 'how', 'are', 'for', 'does', 'can', 'ما', 'كيف'].includes(v),
-      )
-    const scored = published
-      .map((r) => ({
-        r,
-        score: tokens.reduce(
-          (n, token) =>
-            n +
-            (`${r.title} ${r.summary} ${r.titleAr} ${r.summaryAr}`
-              .toLowerCase()
-              .includes(token.replace(/[?؟.,]/g, ''))
-              ? 1
-              : 0),
-          0,
-        ),
-      }))
-      .filter((v) => v.score > 0)
-      .sort((a, b) => b.score - a.score)
-    setAnswerIds(scored.slice(0, 3).map((v) => v.r.id))
-  }
-  return (
-    <>
-      <section className="p-search-hero">
-        <span className="p-ai-orb">
-          <Sparkles size={27} />
-        </span>
-        <p className="p-eyebrow">
-          {t('YOUR INSTITUTIONAL KNOWLEDGE, WITH CONTEXT', 'معرفتك المؤسسية ضمن سياقها')}
-        </p>
-        <h2>{t('The answer is in your documents.', 'الإجابة في وثائقك.')}</h2>
-        <p>
-          {t(
-            'Search trusted records. Ask in Arabic or English. Follow every answer to its source.',
-            'ابحث في السجلات الموثوقة. اسأل بالعربية أو الإنجليزية. تتبع كل إجابة إلى مصدرها.',
-          )}
-        </p>
-        <form
-          className="p-ask-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            ask(question)
-          }}
-        >
-          <Bot size={21} />
-          <input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            aria-label={t('Ask Docaya question', 'سؤال لدوكايا')}
-            placeholder={t('Ask Docaya about a policy or procedure…', 'اسأل دوكايا عن سياسة أو إجراء…')}
-            required
-          />
-          <button className="p-btn primary">
-            {t('Ask Docaya', 'اسأل دوكايا')}
-            <ArrowRight size={16} />
-          </button>
-        </form>
-        <div className="p-suggestions">
-          {[
-            ['What are the retention rules?', 'ما قواعد الحفظ؟'],
-            ['How are annual leave requests approved?', 'كيف تعتمد الإجازات؟'],
-            ['What is the document governance policy?', 'ما سياسة حوكمة الوثائق؟'],
-          ].map(([en, ar]) => (
-            <button key={en} onClick={() => ask(t(en, ar))}>
-              {t(en, ar)}
-            </button>
-          ))}
-        </div>
-        <small>
-          {t(
-            'Demo retrieval from sample text · published & indexed records only · no live AI',
-            'استرجاع تجريبي من النصوص · سجلات منشورة ومفهرسة فقط · دون ذكاء اصطناعي حي',
-          )}
-        </small>
-      </section>
-      {answerIds && (
-        <section className="p-card p-answer">
-          <div className="p-card-head">
-            <h3>
-              <Sparkles size={18} />
-              {t('From your approved knowledge', 'من معرفتك المعتمدة')}
-            </h3>
-            <span className="p-badge published">{t('Cited excerpts', 'مقتطفات موثقة')}</span>
-          </div>
-          {answerIds.length ? (
-            answerIds.map((id, i) => {
-              const r = published.find((v) => v.id === id)
-              return r ? (
-                <div key={id}>
-                  <p>{lang === 'ar' ? r.summaryAr || r.summary : r.summary}</p>
-                  <button className="p-citation" onClick={() => onOpen(r)}>
-                    <span>{i + 1}</span>
-                    {lang === 'ar' ? r.titleAr || r.title : r.title}
-                    <small>
-                      {r.id} · v{r.version}.0
-                    </small>
-                    <ArrowRight size={15} />
-                  </button>
-                </div>
-              ) : null
-            })
-          ) : (
-            <p>
-              {t(
-                'No supporting published document was found for this question. Try another question or index an approved record.',
-                'لم يتم العثور على وثيقة منشورة تدعم هذا السؤال. جرّب سؤالاً آخر أو فهرس سجلاً معتمداً.',
-              )}
-            </p>
-          )}
-        </section>
-      )}
-      <div className="p-toolbar">
-        <div className="p-input-icon">
-          <Search size={17} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label={t('Search published records', 'بحث السجلات المنشورة')}
-            placeholder={t('Search the approved library…', 'ابحث في المكتبة المعتمدة…')}
-          />
-        </div>
-        <select
-          aria-label={t('Class filter', 'تصفية الفئة')}
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-        >
-          <option value="all">{t('All classes', 'كل الفئات')}</option>
-          {state.settings.classes.map((v) => (
-            <option value={v} key={v}>
-              {local(v, lang)}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={t('Search department', 'إدارة البحث')}
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-        >
-          <option value="all">{t('All departments', 'كل الإدارات')}</option>
-          {departments.map((v) => (
-            <option key={v} value={v}>
-              {local(v, lang)}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={t('Sensitivity filter', 'تصفية الحساسية')}
-          value={sensitivity}
-          onChange={(e) => setSensitivity(e.target.value)}
-        >
-          <option value="all">{t('All sensitivities', 'كل درجات الحساسية')}</option>
-          {['Public', 'Internal', 'Confidential', 'Secret'].map((v) => (
-            <option key={v} value={v}>
-              {local(v, lang)}
-            </option>
-          ))}
-        </select>
-        <button
-          className="p-btn"
-          disabled={!query.trim()}
-          onClick={() => {
-            setState((s) => ({ ...s, savedSearches: [...new Set([...s.savedSearches, query.trim()])] }))
-            notify(t('Search saved.', 'تم حفظ البحث.'))
-          }}
-        >
-          {t('Save search', 'حفظ البحث')}
-        </button>
-      </div>
-      {state.savedSearches.length > 0 && (
-        <div className="p-suggestions">
-          {state.savedSearches.map((q) => (
-            <button key={q} onClick={() => setQuery(q)}>
-              <Search size={13} />
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="p-card no-pad">
-        <div className="p-card-head">
-          <h3>{t('Approved knowledge library', 'مكتبة المعرفة المعتمدة')}</h3>
-          <span className="p-subtle">
-            {rows.length} {t('accessible results', 'نتائج متاحة')}
           </span>
         </div>
         <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} />

@@ -2,7 +2,7 @@
 
 **Docaya · دوكايا · Document Management Intelligence / ذكاء إدارة الوثائق**
 
-An interactive Arabic/English client demonstration with sample records, manual registration, four approval patterns, publishing recovery, cited knowledge search, correspondence, records governance, reporting, administration, audit and client workshop feedback.
+An interactive Arabic/English client demonstration with synthetic UAE Ministry of Interior records, editable automatic classification, queue-based review drawers, thumbnail discovery, a floating Docaya assistant, four approval patterns, publishing recovery, cited knowledge search, correspondence, records governance, reporting, administration, audit and client workshop feedback.
 
 **[Open the hosted client demo](https://ojashwas.github.io/intdocayaprototype/)** — select **Enter demo workspace**. The application works without a local server.
 
@@ -23,7 +23,9 @@ See [the workshop walkthrough and M1–M15 coverage matrix](docs/prototype-demo.
 
 - Original uploads: stored in IndexedDB, limited to 20 MB per file in the browser demo.
 - Records, settings and workshop notes: stored locally and preserved across refresh.
-- Ask Docaya: cited excerpts from accessible, published and indexed sample text; no live AI.
+- Uploads: local rule-based suggestions from filenames and supported text, with editable fields and explicit human confirmation.
+- Reviews: queue stays visible beside a document-and-details drawer; no blurred backdrop.
+- Ask Docaya: thumbnail browsing and a floating assistant with cited excerpts from accessible, published and indexed sample text; no live AI.
 - Workshop: capture expectations and export CSV. Export notes before resetting demo data.
 
 ## Validate the prototype
@@ -35,7 +37,7 @@ npm test
 npm run test:e2e
 ```
 
-Browser tests cover registration through cited search and legal holds, role filtering, correspondence, feedback persistence, Arabic/RTL, mobile and an accessibility scan. Local Windows tests use installed Chrome; CI installs Chromium.
+Browser tests cover classification overrides, review queues, thumbnail search, the floating assistant, registration through cited search and legal holds, role filtering, correspondence, feedback persistence, Arabic/RTL, mobile and an accessibility scan. Local Windows tests use installed Chrome; CI installs Chromium.
 
 To run the same tests against the hosted build:
 

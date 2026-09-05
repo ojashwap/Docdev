@@ -575,7 +575,7 @@ export function AdminPage({ state, setState, role, lang, t, notify }: PageProps)
             <h3>{t('Document classes', 'فئات الوثائق')}</h3>
             <p>
               {t(
-                'Controlled vocabulary used during manual classification.',
+                'Controlled vocabulary for classification suggestions and human review.',
                 'قيم مضبوطة تستخدم أثناء التصنيف اليدوي.',
               )}
             </p>

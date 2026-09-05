@@ -15,14 +15,21 @@ test('register, approve, index, cite, hold and restore the original bytes', asyn
   page.on('pageerror', (e) => errors.push(e.message))
   await signIn(page)
   await page.getByRole('button', { name: 'Register document', exact: true }).click()
-  await page.getByRole('button', { name: 'Use a sample document' }).click()
+  await page.getByLabel('Choose file', { exact: true }).setInputFiles({
+    name: 'client-workshop-memo.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from(
+      'DOCAYA SAMPLE\nClient workshop memorandum\nProposed service improvements for client review.',
+    ),
+  })
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await page.getByLabel('Business title *', { exact: true }).fill('Client workshop memorandum')
   await page.getByLabel('Document class *').selectOption('Memo')
   await page
-    .getByLabel('Description *', { exact: true })
+    .getByLabel('Description *')
     .fill('Workshop governance requires every memorandum to be classified and approved.')
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
+  await page.getByLabel('I have reviewed the document and classification').check()
   await page.getByRole('button', { name: 'Submit for approval', exact: true }).click()
   await page.getByRole('button', { name: /Client workshop memorandum.*DOC-/ }).click()
   await page.getByRole('button', { name: 'Approval & publishing', exact: true }).click()
@@ -66,7 +73,9 @@ test('role trimming, global search, correspondence and workshop persistence', as
   await expect(page.getByText('Employee onboarding checklist', { exact: true })).toHaveCount(0)
   await page.getByRole('textbox', { name: 'Global search', exact: true }).fill('continuity')
   await page.getByRole('textbox', { name: 'Global search', exact: true }).press('Enter')
-  await expect(page.locator('tbody tr')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /Preview Business continuity/ })).toBeVisible()
+  await page.getByRole('button', { name: 'List view', exact: true }).click()
+  await expect(page.locator('tbody tr').filter({ hasText: 'Business continuity' })).toHaveCount(1)
   await page.getByRole('combobox', { name: 'Demo persona', exact: true }).selectOption('System Administrator')
   await navigate(page, 'Correspondence')
   await page.getByRole('button', { name: 'New correspondence', exact: true }).click()

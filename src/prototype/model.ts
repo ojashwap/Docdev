@@ -21,6 +21,7 @@ export type Flow = 'Single' | 'Sequential' | 'Parallel' | 'Conditional'
 export type Sensitivity = 'Public' | 'Internal' | 'Confidential' | 'Secret'
 export type RecordItem = {
   id: string
+  sampleKey?: string
   title: string
   titleAr: string
   kind: string
@@ -100,6 +101,7 @@ export type Settings = {
 }
 export type Workspace = {
   schema: 1
+  seedVersion?: number
   documents: RecordItem[]
   notices: Notice[]
   audit: AuditEvent[]
@@ -117,7 +119,32 @@ export const roles: Role[] = [
   'Viewer',
   'Auditor',
 ]
-export const departments = ['Operations', 'Finance', 'Human Resources', 'Legal']
+export const departments = [
+  'Operations',
+  'Finance',
+  'Human Resources',
+  'Legal',
+  'Civil Defence',
+  'Traffic & Patrols',
+  'Forensic Sciences',
+  'Residency & Identity',
+  'Strategy & Governance',
+]
+export const documentClasses = [
+  'Correspondence',
+  'Memo',
+  'Circular',
+  'Contract',
+  'HR Record',
+  'Report',
+  'Policy',
+  'Procedure',
+  'Work Instruction',
+  'Manual',
+  'Form',
+  'Standard',
+]
+export const SEED_VERSION = 2
 export const sensitivities: Sensitivity[] = ['Public', 'Internal', 'Confidential', 'Secret']
 export const flows: Flow[] = ['Single', 'Sequential', 'Parallel', 'Conditional']
 export const people: Record<Role, string> = {
@@ -354,6 +381,210 @@ function publish(record: RecordItem, settings: Settings): RecordItem {
 export function nextNumber(state: Workspace) {
   return `DOC-${new Date().getFullYear()}-${String(Math.max(123, ...state.documents.map((r) => Number(r.id.split('-').at(-1)) || 0)) + 1).padStart(6, '0')}`
 }
+// Fictional records for a UAE public-service workshop, not ministry policies or operational guidance.
+function ministrySamples(): RecordItem[] {
+  type Sample = Pick<
+    RecordItem,
+    'title' | 'titleAr' | 'kind' | 'department' | 'sensitivity' | 'status' | 'summary' | 'summaryAr' | 'flow'
+  >
+  const samples: Sample[] = [
+    {
+      title: 'Civil Defence readiness review',
+      titleAr: 'مراجعة جاهزية الدفاع المدني',
+      kind: 'Report',
+      department: 'Civil Defence',
+      sensitivity: 'Internal',
+      status: 'PendingApproval',
+      flow: 'Parallel',
+      summary:
+        'Synthetic UAE MOI workshop report for the Civil Defence service quality team. Summarises a fictional public-facility readiness exercise, accessibility checks, staff briefing attendance and follow-up ownership. The department head reviews completeness while the compliance officer checks document controls in parallel. The demonstration asks reviewers to confirm action owners and the next review date; no real facilities, vulnerabilities or emergency procedures are included.',
+      summaryAr:
+        'تقرير اصطناعي لورشة عرض دوكايا في سياق وزارة الداخلية الإماراتية وفريق جودة خدمات الدفاع المدني. يلخص تمرين جاهزية افتراضياً لمرفق عام وفحوص سهولة الوصول وحضور إحاطات الموظفين ومسؤوليات المتابعة. يراجع رئيس الإدارة اكتمال التقرير ومسؤول الامتثال ضوابط الوثيقة بالتوازي. يؤكد المراجعون أصحاب الإجراءات وموعد المراجعة القادمة. لا يتضمن مرافق حقيقية أو نقاط ضعف أو إجراءات طوارئ فعلية.',
+    },
+    {
+      title: 'Road safety awareness campaign circular',
+      titleAr: 'تعميم حملة التوعية بالسلامة المرورية',
+      kind: 'Circular',
+      department: 'Traffic & Patrols',
+      sensitivity: 'Public',
+      status: 'Published',
+      flow: 'Single',
+      summary:
+        'Synthetic public-awareness circular for a fictional UAE road safety campaign. Coordinates bilingual school engagement materials, seat-belt awareness posters, accessible digital content and community feedback collection. The approved communication pack is available to all demonstration departments. Campaign dates, attendance and outreach targets are illustrative workshop values, with no enforcement instructions or real incident information.',
+      summaryAr:
+        'تعميم توعوي اصطناعي لحملة إماراتية افتراضية للسلامة المرورية. ينسق مواد التواصل مع المدارس باللغتين وملصقات التوعية بحزام الأمان والمحتوى الرقمي الميسر وجمع ملاحظات المجتمع. حزمة التواصل المعتمدة متاحة لجميع إدارات العرض. تواريخ الحملة والحضور والمستهدفات أمثلة توضيحية للورشة، دون تعليمات إنفاذ أو معلومات حوادث حقيقية.',
+    },
+    {
+      title: 'Evidence custody documentation procedure',
+      titleAr: 'إجراء توثيق عهدة الأدلة',
+      kind: 'Procedure',
+      department: 'Forensic Sciences',
+      sensitivity: 'Confidential',
+      status: 'PendingApproval',
+      flow: 'Sequential',
+      summary:
+        'Synthetic document-control procedure for the Forensic Sciences demonstration library. Uses the fictional training reference TRAINING-CASE-042 to illustrate required metadata, version history, acknowledgement fields and supervisor sign-off on an evidence custody form. Department review must precede compliance review. This is a UI workflow example only: it contains no actual evidence, personal information, forensic techniques or authoritative chain-of-custody requirements.',
+      summaryAr:
+        'إجراء اصطناعي لضبط الوثائق في مكتبة عرض العلوم الجنائية. يستخدم المرجع التدريبي الافتراضي TRAINING-CASE-042 لعرض البيانات الوصفية المطلوبة وسجل الإصدارات وحقول الإقرار واعتماد المشرف على نموذج عهدة الأدلة. تسبق مراجعة الإدارة مراجعة الامتثال. هذا مثال لعرض سير عمل الواجهة فقط، ولا يتضمن أدلة فعلية أو بيانات شخصية أو تقنيات جنائية أو متطلبات رسمية لسلسلة العهدة.',
+    },
+    {
+      title: 'Residency customer service quality standard',
+      titleAr: 'معيار جودة خدمة متعاملي الإقامة',
+      kind: 'Standard',
+      department: 'Residency & Identity',
+      sensitivity: 'Internal',
+      status: 'Published',
+      flow: 'Sequential',
+      summary:
+        'Synthetic service-quality standard for a fictional residency customer happiness centre. Covers bilingual guidance, accessible appointment information, document completeness checks, feedback handling and escalation ownership. Illustrative measures track first-contact resolution and satisfaction without storing applicant data. This workshop standard is not immigration policy and does not describe actual eligibility, fees or processing commitments.',
+      summaryAr:
+        'معيار جودة اصطناعي لمركز افتراضي لإسعاد متعاملي خدمات الإقامة. يغطي الإرشاد باللغتين وإتاحة معلومات المواعيد والتحقق من اكتمال الوثائق ومعالجة الملاحظات ومسؤولية التصعيد. تقيس المؤشرات التوضيحية الحل من أول تواصل والرضا دون تخزين بيانات المتقدمين. هذا معيار للورشة وليس سياسة هجرة ولا يصف أهلية أو رسوماً أو التزامات معالجة فعلية.',
+    },
+    {
+      title: 'Community safety outreach manual',
+      titleAr: 'دليل التواصل المجتمعي للسلامة',
+      kind: 'Manual',
+      department: 'Strategy & Governance',
+      sensitivity: 'Public',
+      status: 'Published',
+      flow: 'Single',
+      summary:
+        'Synthetic bilingual outreach manual for a UAE community safety demonstration. Organises awareness topics, inclusive event invitations, approved presentation templates and post-event feedback forms. Sample audiences include families, schools and community partners. All event details are fictional. The manual demonstrates a searchable, reusable public communication library with clear ownership and periodic review.',
+      summaryAr:
+        'دليل تواصل اصطناعي باللغتين لعرض توضيحي عن السلامة المجتمعية في الإمارات. ينظم موضوعات التوعية ودعوات الفعاليات الشاملة وقوالب العروض المعتمدة ونماذج الملاحظات بعد الفعاليات. تشمل الفئات التوضيحية الأسر والمدارس والشركاء المجتمعيين. جميع تفاصيل الفعاليات افتراضية. يوضح الدليل مكتبة اتصال عامة قابلة للبحث وإعادة الاستخدام مع مسؤوليات واضحة ومراجعة دورية.',
+    },
+    {
+      title: 'Joint emergency exercise coordination memo',
+      titleAr: 'مذكرة تنسيق تمرين الطوارئ المشترك',
+      kind: 'Memo',
+      department: 'Operations',
+      sensitivity: 'Internal',
+      status: 'PendingApproval',
+      flow: 'Single',
+      summary:
+        'Synthetic coordination memo for the fictional Al Waha tabletop workshop. Requests approval of the meeting agenda, attendee roles, observer feedback template and consolidated lessons-learned report. Civil Defence and service-centre coordinators contribute administrative observations. Exercise locations and dates are fictional and the memo contains no response tactics, deployment details or real emergency information.',
+      summaryAr:
+        'مذكرة تنسيق اصطناعية لورشة التمرين المكتبي الافتراضية «الواحة». تطلب اعتماد جدول الاجتماع وأدوار المشاركين ونموذج ملاحظات المراقبين وتقرير الدروس المستفادة الموحد. يساهم منسقو الدفاع المدني ومراكز الخدمة بملاحظات إدارية. مواقع التمرين وتواريخه افتراضية ولا تحتوي المذكرة على تكتيكات استجابة أو تفاصيل انتشار أو معلومات طوارئ حقيقية.',
+    },
+    {
+      title: 'Traffic service request work instruction',
+      titleAr: 'تعليمات عمل طلبات الخدمات المرورية',
+      kind: 'Work Instruction',
+      department: 'Traffic & Patrols',
+      sensitivity: 'Internal',
+      status: 'PendingApproval',
+      flow: 'Single',
+      summary:
+        'Synthetic work instruction for routing general traffic-service enquiries in the demonstration workspace. Shows how an intake coordinator captures a fictional request reference, verifies required attachments, assigns a service owner and records a customer update. Reviewers check plain-language guidance and bilingual consistency. All turnaround targets are workshop examples, with no official service promises or real driver data.',
+      summaryAr:
+        'تعليمات عمل اصطناعية لتوجيه استفسارات الخدمات المرورية العامة في مساحة العرض. توضح كيف يسجل منسق الاستقبال مرجع طلب افتراضياً ويتحقق من المرفقات المطلوبة ويعين مسؤول الخدمة ويسجل تحديث المتعامل. يتحقق المراجعون من وضوح الإرشادات واتساق اللغتين. جميع مدد الإنجاز أمثلة للورشة دون وعود خدمة رسمية أو بيانات سائقين حقيقية.',
+    },
+    {
+      title: 'Ministry document control procedure',
+      titleAr: 'إجراء ضبط وثائق الوزارة',
+      kind: 'Procedure',
+      department: 'Strategy & Governance',
+      sensitivity: 'Internal',
+      status: 'Published',
+      flow: 'Sequential',
+      summary:
+        'Synthetic procedure for the Docaya UAE MOI client workshop. AI-assisted intake suggests the document class, department and confidentiality; the document controller reviews or overrides each suggestion before submission. Approved versions enter the controlled library and superseded versions remain traceable. The sample describes the prototype workflow and provides no official records-management or retention mandate.',
+      summaryAr:
+        'إجراء اصطناعي لورشة عملاء دوكايا في سياق وزارة الداخلية الإماراتية. يقترح الإدخال بمساعدة الذكاء الاصطناعي فئة الوثيقة والإدارة والسرية، ويراجع مراقب الوثائق كل اقتراح أو يعدله قبل الإرسال. تدخل الإصدارات المعتمدة المكتبة المضبوطة مع بقاء الإصدارات المستبدلة قابلة للتتبع. تصف العينة سير عمل النموذج الأولي ولا تقدم تفويضاً رسمياً لإدارة السجلات أو مدد حفظها.',
+    },
+    {
+      title: 'Civil Defence facility review checklist',
+      titleAr: 'قائمة مراجعة مرافق الدفاع المدني',
+      kind: 'Form',
+      department: 'Civil Defence',
+      sensitivity: 'Internal',
+      status: 'Classified',
+      flow: 'Single',
+      summary:
+        'Synthetic form template for recording an administrative facility review in the client demo. Contains fictional site identification, review date, document availability, staff training record checks and follow-up ownership fields. Classification is complete and the contributor can confirm the metadata before routing for approval. No actual facility assessments, inspection findings or safety certifications are represented.',
+      summaryAr:
+        'قالب نموذج اصطناعي لتوثيق مراجعة إدارية لمرفق في عرض العميل. يتضمن تعريف موقع افتراضي وتاريخ المراجعة وتوافر الوثائق والتحقق من سجلات تدريب الموظفين وحقول مسؤولية المتابعة. اكتمل التصنيف ويمكن للمساهم تأكيد البيانات الوصفية قبل الإرسال للاعتماد. لا يمثل تقييمات مرافق فعلية أو نتائج تفتيش أو شهادات سلامة.',
+    },
+    {
+      title: 'Customer data protection review report',
+      titleAr: 'تقرير مراجعة حماية بيانات المتعاملين',
+      kind: 'Report',
+      department: 'Legal',
+      sensitivity: 'Confidential',
+      status: 'Returned',
+      flow: 'Sequential',
+      summary:
+        'Synthetic governance review for the fictional customer services programme. Describes document access responsibilities, purpose descriptions and a sample retention decision log. Returned to the author to add the accountable owner and clarify the review scope. All examples use invented references without personal data. The report is a demonstration of review feedback and is not a legal assessment or compliance determination.',
+      summaryAr:
+        'مراجعة حوكمة اصطناعية لبرنامج افتراضي لخدمات المتعاملين. تصف مسؤوليات الوصول للوثائق وأوصاف الأغراض وسجل قرارات حفظ توضيحي. أعيدت للمؤلف لإضافة المسؤول وتوضيح نطاق المراجعة. تستخدم جميع الأمثلة مراجع مختلقة دون بيانات شخصية. التقرير عرض توضيحي لملاحظات المراجعة وليس تقييماً قانونياً أو قرار امتثال.',
+    },
+    {
+      title: 'Inclusive public service charter',
+      titleAr: 'ميثاق الخدمات العامة الشاملة',
+      kind: 'Policy',
+      department: 'Residency & Identity',
+      sensitivity: 'Public',
+      status: 'PendingApproval',
+      flow: 'Parallel',
+      summary:
+        'Synthetic customer happiness charter for a fictional UAE service centre. Sets out respectful communication, Arabic and English guidance, accessible channels and a clear feedback route. Department and compliance reviewers approve the draft in parallel. Workshop participants can compare the document preview with its metadata and request changes to the proposed service commitments before publication.',
+      summaryAr:
+        'ميثاق اصطناعي لإسعاد المتعاملين في مركز خدمة إماراتي افتراضي. يوضح التواصل باحترام والإرشاد بالعربية والإنجليزية والقنوات الميسرة ومسار الملاحظات الواضح. يعتمد مراجعو الإدارة والامتثال المسودة بالتوازي. يمكن للمشاركين في الورشة مقارنة معاينة الوثيقة ببياناتها الوصفية وطلب تعديل التزامات الخدمة المقترحة قبل النشر.',
+    },
+    {
+      title: 'Service excellence training register',
+      titleAr: 'سجل التدريب على التميز في الخدمة',
+      kind: 'HR Record',
+      department: 'Human Resources',
+      sensitivity: 'Internal',
+      status: 'Archived',
+      flow: 'Single',
+      summary:
+        'Synthetic archived register for a completed service-excellence training cycle. Uses anonymous workshop groups rather than employee identities to demonstrate course completion, document ownership and archive review. The archive date and retention review are illustrative configuration examples. A records officer can inspect the history and record a disposition reason without processing any actual personnel records.',
+      summaryAr:
+        'سجل مؤرشف اصطناعي لدورة تدريبية مكتملة عن التميز في الخدمة. يستخدم مجموعات ورشة مجهولة بدلاً من هويات الموظفين لعرض إكمال الدورات وملكية الوثائق ومراجعة الأرشيف. تاريخ الأرشفة ومراجعة الحفظ أمثلة توضيحية للإعدادات. يمكن لمسؤول السجلات فحص السجل وتوثيق سبب التصرف دون معالجة ملفات موظفين فعلية.',
+    },
+  ]
+  const now = Date.now()
+  return samples.map((sample, index): RecordItem => {
+    const released = ['Published', 'Archived'].includes(sample.status)
+    const record: RecordItem = {
+      ...sample,
+      id: `DOC-2026-${String(201 + index).padStart(6, '0')}`,
+      sampleKey: `uae-moi-workshop-${index + 1}`,
+      owner: index % 2 ? 'Noor Al Shamsi' : 'Mariam Al Mansoori',
+      reference: `MOI-DEMO-${String(index + 1).padStart(3, '0')}`,
+      fileName: `${sample.title.toLowerCase().replaceAll(' ', '-')}-sample.pdf`,
+      mime: 'application/pdf',
+      size: 146432 + index * 16384,
+      hash: 'Synthetic workshop fixture — upload an original to calculate SHA-256',
+      captured: new Date(now - (index + 3) * 86400000).toISOString(),
+      expiry: new Date(now + (sample.status === 'Archived' ? -1 : 120 + index * 15) * 86400000)
+        .toISOString()
+        .slice(0, 10),
+      priority: index === 0 || index === 5 ? 'Priority' : 'Routine',
+      scope: 'Clearance level',
+      approvals: [],
+      version: released ? 1 : 0,
+      indexed: sample.status === 'Published',
+      hold: '',
+      declared: sample.status === 'Archived',
+      location: released
+        ? `${sample.status === 'Archived' ? 'Archive' : 'SharePoint / Official Records'}/${sample.department}/${sample.kind}`
+        : 'Staging',
+      staging: released ? 'Published / Approved' : 'Active',
+      note:
+        sample.status === 'Returned'
+          ? 'Please identify the accountable owner and clarify the review scope.'
+          : '',
+      due: new Date(now + (index === 0 ? 4 : 18 + index * 3) * 3600000).toISOString(),
+      delegated: false,
+      signature: released ? 'Synthetic workshop approval · DEMO-SIGNATURE' : '',
+    }
+    if (released) record.approvals = approvalSteps(record)
+    return record
+  })
+}
 export function seedWorkspace(): Workspace {
   const seeds = [
     [
@@ -522,7 +753,8 @@ export function seedWorkspace(): Workspace {
   )
   return {
     schema: 1,
-    documents,
+    seedVersion: SEED_VERSION,
+    documents: [...documents, ...ministrySamples()],
     notices: [
       {
         id: 'n1',
@@ -589,7 +821,7 @@ export function seedWorkspace(): Workspace {
       },
     ],
     settings: {
-      classes: ['Correspondence', 'Memo', 'Circular', 'Contract', 'HR Record', 'Report', 'Policy'],
+      classes: [...documentClasses],
       department: 'Operations',
       library: 'SharePoint / Official Records',
       sla: 48,
@@ -607,11 +839,28 @@ export function seedWorkspace(): Workspace {
   }
 }
 export const STORAGE_KEY = 'docaya-prototype-v1'
+export function migrateWorkspace(value: Workspace): Workspace {
+  if ((value.seedVersion ?? 1) >= SEED_VERSION) return value
+  const ids = new Set(value.documents.map((record) => record.id))
+  const sampleKeys = new Set(value.documents.map((record) => record.sampleKey).filter(Boolean))
+  return {
+    ...value,
+    seedVersion: SEED_VERSION,
+    documents: [
+      ...value.documents,
+      ...ministrySamples().filter((record) => !ids.has(record.id) && !sampleKeys.has(record.sampleKey)),
+    ],
+    settings: {
+      ...value.settings,
+      classes: [...new Set([...(value.settings.classes ?? []), ...documentClasses])],
+    },
+  }
+}
 export function loadWorkspace(): Workspace {
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
     if (value?.schema === 1 && Array.isArray(value.documents) && value.settings && Array.isArray(value.audit))
-      return value
+      return migrateWorkspace(value)
   } catch {
     /* Start a clean demo if storage is invalid. */
   }

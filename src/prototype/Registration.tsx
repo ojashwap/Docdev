@@ -1,6 +1,6 @@
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Check, CloudUpload, FileText, ShieldCheck, Sparkles, ScanLine, ChevronRight } from 'lucide-react'
 import { local } from './translations'
-import { useState, type FormEvent } from 'react'
-import { Check, CloudUpload, FileText, ShieldCheck } from 'lucide-react'
 import {
   departments,
   flows,
@@ -14,6 +14,44 @@ import {
 } from './model'
 import { Field, Modal, type Translate } from './ui'
 import { fingerprint, saveOriginal } from './files'
+import { DocumentPreview } from './DocumentPreview'
+import {
+  applyClassification,
+  suggestClassification,
+  type ClassificationSuggestion,
+  type SuggestedFields,
+} from './classification'
+import './registration-ai.css'
+
+const suggestedKeys: (keyof SuggestedFields)[] = [
+  'title',
+  'kind',
+  'department',
+  'sensitivity',
+  'flow',
+  'summary',
+]
+const samples = [
+  {
+    title: 'Traffic safety circular',
+    titleAr: 'تعميم السلامة المرورية',
+    filename: 'moi-traffic-safety-circular.txt',
+    text: 'SYNTHETIC MOI DEMO DOCUMENT\nTraffic and Patrols — public road safety circular\nCoordinate an awareness campaign on school-zone speed limits, pedestrian crossings and safe arrival. Department coordinators will review the proposed campaign before publication. All locations and activities in this example are fictional.',
+  },
+  {
+    title: 'Civil Defence procedure',
+    titleAr: 'إجراءات الدفاع المدني',
+    filename: 'civil-defence-evacuation-procedure.txt',
+    text: 'SYNTHETIC MOI DEMO DOCUMENT\nCivil Defence — evacuation procedure\nInternal workshop exercise for a fictional ministry service centre. Verify exit routes, assign floor marshals, record assembly-point attendance and document the post-exercise review.',
+  },
+  {
+    title: 'Evidence handling standard',
+    titleAr: 'معيار التعامل مع الأدلة',
+    filename: 'forensic-evidence-handling-standard.txt',
+    text: 'SYNTHETIC MOI DEMO DOCUMENT\nForensic Sciences — evidence handling standard\nConfidential. Use fictional evidence references only. Record each chain of custody transfer, verify the package seal and obtain sequential supervisory and compliance approval. This is sample content, not an official operational procedure.',
+  },
+]
+
 export function Registration({
   state,
   role,
@@ -35,6 +73,11 @@ export function Registration({
   const [file, setFile] = useState<File>()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [suggestion, setSuggestion] = useState<ClassificationSuggestion>()
+  const [confirmed, setConfirmed] = useState(false)
+  const [sampleIndex, setSampleIndex] = useState(0)
+  const generation = useRef(0)
+  const dirty = useRef(new Set<keyof RecordItem>(existing ? suggestedKeys : []))
   const [record, setRecord] = useState<RecordItem>(
     () =>
       existing || {
@@ -73,21 +116,30 @@ export function Registration({
         signature: '',
       },
   )
-  const update = <K extends keyof RecordItem>(key: K, value: RecordItem[K]) =>
+  useEffect(
+    () => () => {
+      generation.current += 1
+    },
+    [],
+  )
+  const update = <K extends keyof RecordItem>(key: K, value: RecordItem[K]) => {
+    dirty.current.add(key)
+    setConfirmed(false)
     setRecord((r) => ({ ...r, [key]: value }))
+  }
   const capture = async (selected?: File) => {
     if (!selected) return
+    const request = ++generation.current
     setError('')
     setBusy(true)
+    setConfirmed(false)
     try {
       if (selected.size > 20 * 1024 * 1024)
         throw new Error(
-          t(
-            'This browser demo accepts files up to 20 MB. The production design targets resumable uploads up to 5 GB.',
-            'يقبل العرض ملفات حتى ٢٠ ميغابايت. التصميم الإنتاجي يستهدف رفعاً قابلاً للاستئناف حتى ٥ غيغابايت.',
-          ),
+          t('This browser demo accepts files up to 20 MB.', 'يقبل العرض ملفات حتى ٢٠ ميغابايت.'),
         )
       const hash = await fingerprint(selected)
+      if (request !== generation.current) return
       if (state.documents.some((r) => r.hash === hash && r.id !== record.id))
         throw new Error(
           t(
@@ -95,22 +147,46 @@ export function Registration({
             'هذا الملف مسجل بالفعل. افتح السجل الحالي لإنشاء إصدار.',
           ),
         )
+      const content = selected.name.toLowerCase().endsWith('.txt')
+        ? await selected.slice(0, 64000).text()
+        : ''
+      if (request !== generation.current) return
+      const result = suggestClassification(selected.name, content, {
+        classes: state.settings.classes,
+        departments,
+        defaultDepartment: state.settings.department,
+      })
+      const protectedFields = new Set(dirty.current)
+      if (role === 'Department Administrator') protectedFields.add('department')
+      setSuggestion(result)
       setFile(selected)
       setRecord((r) => ({
-        ...r,
-        title: r.title || selected.name.replace(/\.[^.]+$/, ''),
+        ...applyClassification(r, result, protectedFields),
         fileName: selected.name,
         mime: selected.type || 'application/octet-stream',
         size: selected.size,
         hash,
       }))
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      if (request === generation.current) setError(e instanceof Error ? e.message : String(e))
     } finally {
-      setBusy(false)
+      if (request === generation.current) setBusy(false)
     }
   }
   const save = async (status: RecordItem['status']) => {
+    if (busy) return
+    if (
+      status === 'PendingApproval' &&
+      (!confirmed || !record.title.trim() || !record.kind || !record.summary.trim())
+    ) {
+      setError(
+        t(
+          'Review the required metadata and confirm the classification before submitting.',
+          'راجع البيانات المطلوبة وأكد التصنيف قبل الإرسال.',
+        ),
+      )
+      return
+    }
     setBusy(true)
     setError('')
     try {
@@ -137,254 +213,449 @@ export function Registration({
   }
   const advance = (e: FormEvent) => {
     e.preventDefault()
+    if (busy || !record.fileName) return
     if (step === 2) void save('PendingApproval')
-    else setStep(step + 1)
+    else {
+      setError('')
+      setStep(step + 1)
+    }
   }
+  const overrides = suggestion ? suggestedKeys.filter((key) => suggestion.values[key] !== record[key]) : []
+  const classificationSummary = suggestion && (
+    <section
+      className="p-ai-classification"
+      aria-label={t('Automatic classification suggestions', 'اقتراحات التصنيف التلقائي')}
+    >
+      <div className="p-ai-classification-heading">
+        <span className="p-ai-classification-icon">
+          <Sparkles size={20} />
+        </span>
+        <div>
+          <strong>{t('Docaya has prepared your metadata', 'أعد دوكايا البيانات الوصفية')}</strong>
+          <small>
+            {t('Local demo suggestions · your review is required', 'اقتراحات تجريبية محلية · تتطلب مراجعتك')}
+          </small>
+        </div>
+        <span className="p-ai-confidence">
+          {suggestion.confidence}%<small>{t('rule confidence', 'ثقة القواعد')}</small>
+        </span>
+      </div>
+      <div className="p-ai-suggestion-grid">
+        {(['kind', 'department', 'sensitivity', 'flow'] as const).map((key) => (
+          <div key={key} className={overrides.includes(key) ? 'overridden' : ''}>
+            <small>
+              {key === 'kind'
+                ? t('Class', 'الفئة')
+                : key === 'department'
+                  ? t('Department', 'الإدارة')
+                  : key === 'sensitivity'
+                    ? t('Sensitivity', 'الحساسية')
+                    : t('Approval', 'الاعتماد')}
+            </small>
+            <strong>{record[key] ? local(record[key], lang) : t('Choose a class', 'اختر الفئة')}</strong>
+            {overrides.includes(key) && <span>{t('Your value', 'اختيارك')}</span>}
+          </div>
+        ))}
+      </div>
+      <details>
+        <summary>{t('Why these suggestions?', 'لماذا هذه الاقتراحات؟')}</summary>
+        <p>
+          {suggestion.source === 'filename-and-text'
+            ? t(
+                'Read from the filename and the first 12,000 characters of local TXT content.',
+                'استناداً إلى اسم الملف وأول ١٢٬٠٠٠ حرف من محتوى الملف النصي المحلي.',
+              )
+            : t(
+                'Read from the filename only. PDF, Office and image contents have not been analysed.',
+                'استناداً إلى اسم الملف فقط. لم يتم تحليل محتوى ملفات PDF أو Office أو الصور.',
+              )}
+        </p>
+        <ul>
+          {suggestion.reasons.map((reason) => (
+            <li key={reason.en}>{t(reason.en, reason.ar)}</li>
+          ))}
+        </ul>
+        <p>
+          {t(
+            'Confidence is a rule-based demo score, not a calibrated AI probability. No OCR or external AI service is connected.',
+            'الثقة نتيجة قواعد تجريبية وليست احتمالاً معايراً للذكاء الاصطناعي. لا توجد خدمة خارجية للذكاء الاصطناعي أو التعرف على النصوص.',
+          )}
+        </p>
+      </details>
+      {overrides.length > 0 && (
+        <p className="p-ai-overrides">
+          <Check size={14} />
+          {t(
+            `${overrides.length} field(s) kept as your choice.`,
+            `تم الاحتفاظ باختيارك في ${overrides.length} حقول.`,
+          )}
+        </p>
+      )}
+      <p className="p-ai-edit-hint">
+        {t(
+          'Every suggestion can be edited in Classify. Your corrections are preserved when you replace the file.',
+          'يمكنك تعديل جميع الاقتراحات في التصنيف. تُحفظ تصحيحاتك عند استبدال الملف.',
+        )}
+      </p>
+    </section>
+  )
   return (
     <Modal
       title={existing ? t('Edit registration', 'تعديل التسجيل') : t('Register a document', 'تسجيل وثيقة')}
       onClose={onClose}
       wide
+      variant="drawer"
     >
-      <div className="p-stepper">
-        {[t('Capture', 'الالتقاط'), t('Classify', 'التصنيف'), t('Review & submit', 'المراجعة والإرسال')].map(
-          (label, i) => (
-            <div className={step >= i ? 'active' : ''} key={label}>
-              <span>{step > i ? <Check size={14} /> : i + 1}</span>
-              {label}
+      <div className="p-registration-layout">
+        <aside className="p-registration-preview">
+          <div className="p-registration-preview-heading">
+            <ScanLine size={18} />
+            <div>
+              <strong>{t('Original document', 'الوثيقة الأصلية')}</strong>
+              <small>{t('Preview alongside your metadata', 'معاينة بجانب البيانات الوصفية')}</small>
             </div>
-          ),
-        )}
-      </div>
-      <form onSubmit={advance} className="p-modal-body">
-        <div className="p-note">
-          <ShieldCheck size={18} />
-          <span>
+            <span>{t('Preserved', 'محفوظة')}</span>
+          </div>
+          {record.fileName ? (
+            <DocumentPreview record={record} lang={lang} file={file} />
+          ) : (
+            <div className="p-registration-preview-empty">
+              <FileText size={48} />
+              <h3>{t('Your document, in view', 'وثيقتك أمامك')}</h3>
+              <p>
+                {t(
+                  'Upload a file to preview it here while Docaya suggests its classification.',
+                  'ارفع ملفاً لمعاينته هنا أثناء اقتراح دوكايا لتصنيفه.',
+                )}
+              </p>
+              <div className="p-preview-paper-placeholder">
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          )}
+          <p className="p-registration-original-note">
+            <ShieldCheck size={15} />
             {t(
-              'Manual registration. Your original format is preserved. AI is used only after approval and publication.',
-              'تسجيل يدوي مع الاحتفاظ بصيغة الملف الأصلية. يستخدم الذكاء الاصطناعي فقط بعد الاعتماد والنشر.',
+              'Original bytes and SHA-256 retained. No conversion.',
+              'حفظ البيانات الأصلية وبصمة SHA-256 دون تحويل.',
             )}
-          </span>
-        </div>
-        {step === 0 && (
-          <>
-            <div
-              className="p-drop"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault()
-                void capture(e.dataTransfer.files[0])
-              }}
-            >
-              <CloudUpload size={40} />
-              <h3>{t('Give every document a governed beginning', 'امنح كل وثيقة بداية محكومة')}</h3>
-              <p>{t('Drop a file here, or browse your computer', 'اسحب ملفاً هنا أو تصفح جهازك')}</p>
-              <input
-                aria-label={t('Choose file', 'اختيار ملف')}
-                type="file"
-                accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.tif,.tiff,.txt"
-                onChange={(e) => void capture(e.target.files?.[0])}
-              />
-              <small>PDF · DOCX · XLSX · PPTX · PNG · JPEG · TIFF · TXT · 20 MB</small>
-            </div>
-            <button
-              type="button"
-              className="p-btn"
-              onClick={() =>
-                void capture(
-                  new File(
-                    [
-                      'DOCAYA SAMPLE\nClient workshop memorandum\nProposed service improvements for client review.',
-                    ],
-                    'client-workshop-memo.txt',
-                    { type: 'text/plain' },
-                  ),
-                )
-              }
-            >
-              {t('Use a sample document', 'استخدام وثيقة تجريبية')}
-            </button>
-            {record.fileName && (
-              <div className="p-file-summary">
-                <FileText />
-                <div>
-                  <strong>{record.fileName}</strong>
-                  <small>
-                    {(record.size / 1024).toFixed(1)} KB ·{' '}
-                    {t('Signature checked · SHA-256 calculated', 'تم فحص التوقيع وحساب البصمة')}
-                  </small>
-                </div>
-                <Check size={19} />
+          </p>
+        </aside>
+        <div className="p-registration-controls">
+          <div className="p-stepper">
+            {[
+              t('Capture', 'الالتقاط'),
+              t('Classify', 'التصنيف'),
+              t('Review & submit', 'المراجعة والإرسال'),
+            ].map((label, i) => (
+              <div className={step >= i ? 'active' : ''} key={label}>
+                <span>{step > i ? <Check size={14} /> : i + 1}</span>
+                {label}
+              </div>
+            ))}
+          </div>
+          <form onSubmit={advance} className="p-modal-body p-registration-form">
+            <fieldset disabled={busy} className="p-registration-fields">
+              {step === 0 && (
+                <>
+                  <div
+                    className="p-drop"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      if (!busy) void capture(e.dataTransfer.files[0])
+                    }}
+                  >
+                    <CloudUpload size={34} />
+                    <h3>{t('Drop it in. Let Docaya organise it.', 'ارفع وثيقتك ودع دوكايا ينظمها.')}</h3>
+                    <p>
+                      {t(
+                        'A preview and editable classification, together.',
+                        'معاينة وتصنيف قابل للتعديل في مكان واحد.',
+                      )}
+                    </p>
+                    <input
+                      aria-label={t('Choose file', 'اختيار ملف')}
+                      type="file"
+                      accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.tif,.tiff,.txt"
+                      onChange={(e) => {
+                        void capture(e.target.files?.[0])
+                        e.target.value = ''
+                      }}
+                    />
+                    <small>PDF · DOCX · XLSX · PPTX · PNG · JPEG · TIFF · TXT · 20 MB</small>
+                  </div>
+                  <div className="p-registration-sample">
+                    <Field label={t('Explore an MOI scenario', 'استكشف سيناريو لوزارة الداخلية')}>
+                      <select value={sampleIndex} onChange={(e) => setSampleIndex(Number(e.target.value))}>
+                        {samples.map((sample, i) => (
+                          <option value={i} key={sample.filename}>
+                            {t(sample.title, sample.titleAr)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <button
+                      type="button"
+                      className="p-btn"
+                      onClick={() => {
+                        const sample = samples[sampleIndex]
+                        void capture(new File([sample.text], sample.filename, { type: 'text/plain' }))
+                      }}
+                    >
+                      {t('Use a sample document', 'استخدام وثيقة تجريبية')}
+                      <ChevronRight size={15} />
+                    </button>
+                  </div>
+                  {record.fileName && (
+                    <div className="p-file-summary">
+                      <FileText />
+                      <div>
+                        <strong>{record.fileName}</strong>
+                        <small>
+                          {(record.size / 1024).toFixed(1)} KB ·{' '}
+                          {t(
+                            'File signature checked · SHA-256 calculated',
+                            'تم فحص توقيع الملف وحساب البصمة',
+                          )}
+                        </small>
+                      </div>
+                      <Check size={19} />
+                    </div>
+                  )}
+                  {classificationSummary}
+                  <p className="p-subtle">
+                    {t(
+                      'Synthetic MOI scenarios for client discussion. Malware scanning, DLP and AI services are simulated.',
+                      'سيناريوهات افتراضية لوزارة الداخلية لمناقشتها مع العميل. فحص الملفات ومنع تسرب البيانات وخدمات الذكاء الاصطناعي محاكاة.',
+                    )}
+                  </p>
+                </>
+              )}
+              {step === 1 && (
+                <>
+                  {classificationSummary}
+                  <div className="p-form-grid">
+                    <Field label={t('Business title *', 'عنوان الوثيقة *')}>
+                      <input
+                        required
+                        value={record.title}
+                        onChange={(e) => update('title', e.target.value)}
+                      />
+                    </Field>
+                    <Field label={t('Arabic title', 'العنوان العربي')}>
+                      <input
+                        dir="rtl"
+                        value={record.titleAr}
+                        onChange={(e) => update('titleAr', e.target.value)}
+                      />
+                    </Field>
+                    <Field label={t('Document class *', 'فئة الوثيقة *')}>
+                      <select required value={record.kind} onChange={(e) => update('kind', e.target.value)}>
+                        <option value="">{t('Select a class', 'اختر الفئة')}</option>
+                        {state.settings.classes.map((v) => (
+                          <option key={v} value={v}>
+                            {local(v, lang)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('Owning department *', 'الإدارة المالكة *')}>
+                      <select
+                        value={record.department}
+                        disabled={role === 'Department Administrator'}
+                        onChange={(e) => update('department', e.target.value)}
+                      >
+                        {departments.map((v) => (
+                          <option key={v} value={v}>
+                            {local(v, lang)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('Sensitivity *', 'درجة الحساسية *')}>
+                      <select
+                        value={record.sensitivity}
+                        onChange={(e) => update('sensitivity', e.target.value as RecordItem['sensitivity'])}
+                      >
+                        {sensitivities.map((v) => (
+                          <option key={v} value={v}>
+                            {local(v, lang)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('Approval flow *', 'مسار الاعتماد *')}>
+                      <select
+                        value={record.flow}
+                        onChange={(e) => update('flow', e.target.value as RecordItem['flow'])}
+                      >
+                        {flows.map((v) => (
+                          <option key={v} value={v}>
+                            {local(v, lang)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('Priority', 'الأولوية')}>
+                      <select value={record.priority} onChange={(e) => update('priority', e.target.value)}>
+                        {['Routine', 'Priority', 'Urgent'].map((v) => (
+                          <option key={v} value={v}>
+                            {local(v, lang)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('Access scope', 'نطاق الوصول')}>
+                      <select value={record.scope} onChange={(e) => update('scope', e.target.value)}>
+                        {['Department-only', 'Clearance level'].map((v) => (
+                          <option key={v} value={v}>
+                            {local(v, lang)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('Reference / keywords', 'المرجع / الكلمات المفتاحية')}>
+                      <input value={record.reference} onChange={(e) => update('reference', e.target.value)} />
+                    </Field>
+                    <Field label={t('Expiry / review date', 'تاريخ الانتهاء / المراجعة')}>
+                      <input
+                        required
+                        type="date"
+                        value={record.expiry}
+                        onChange={(e) => update('expiry', e.target.value)}
+                      />
+                    </Field>
+                    <div className="p-span">
+                      <Field label={t('Description *', 'الوصف *')}>
+                        <textarea
+                          required
+                          rows={4}
+                          value={record.summary}
+                          onChange={(e) => update('summary', e.target.value)}
+                        />
+                      </Field>
+                    </div>
+                    <div className="p-span">
+                      <Field label={t('Arabic description', 'الوصف العربي')}>
+                        <textarea
+                          dir="rtl"
+                          rows={2}
+                          value={record.summaryAr}
+                          onChange={(e) => update('summaryAr', e.target.value)}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </>
+              )}
+              {step === 2 && (
+                <>
+                  <div className="p-review-card">
+                    <p className="p-eyebrow">{record.id}</p>
+                    <h2>{lang === 'ar' ? record.titleAr || record.title : record.title}</h2>
+                    <p>{lang === 'ar' ? record.summaryAr || record.summary : record.summary}</p>
+                    <dl className="p-facts">
+                      <dt>{t('Classification', 'التصنيف')}</dt>
+                      <dd>
+                        {local(record.kind, lang)} · {local(record.sensitivity, lang)}
+                      </dd>
+                      <dt>{t('Approval', 'الاعتماد')}</dt>
+                      <dd>
+                        {local(record.flow, lang)} · {state.settings.sla} {t('hour SLA', 'ساعة للمعالجة')}
+                      </dd>
+                      <dt>{t('Destination after approval', 'الوجهة بعد الاعتماد')}</dt>
+                      <dd>
+                        {state.settings.library}/{record.department}/{record.kind}
+                      </dd>
+                      <dt>{t('Original file', 'الملف الأصلي')}</dt>
+                      <dd>
+                        {record.fileName} · {(record.size / 1024).toFixed(1)} KB
+                      </dd>
+                      <dt>SHA-256</dt>
+                      <dd className="p-hash">{record.hash}</dd>
+                    </dl>
+                  </div>
+                  <label className="p-classification-confirm">
+                    <input
+                      type="checkbox"
+                      checked={confirmed}
+                      onChange={(e) => setConfirmed(e.target.checked)}
+                    />
+                    <span>
+                      <strong>
+                        {t('I have reviewed the document and classification', 'راجعت الوثيقة وتصنيفها')}
+                      </strong>
+                      <small>
+                        {t(
+                          'The title, department, sensitivity and approval route reflect my review. AI suggestions do not approve or publish this document.',
+                          'العنوان والإدارة والحساسية ومسار الاعتماد تعكس مراجعتي. الاقتراحات لا تعتمد الوثيقة أو تنشرها.',
+                        )}
+                      </small>
+                    </span>
+                  </label>
+                  <div className="p-note">
+                    <ShieldCheck size={18} />
+                    {t(
+                      'Submission sends the original to the approval queue. Publication follows every required approval.',
+                      'يرسل الملف الأصلي إلى قائمة الاعتماد. يتم النشر بعد استكمال جميع الموافقات المطلوبة.',
+                    )}
+                  </div>
+                </>
+              )}
+            </fieldset>
+            {busy && (
+              <div className="p-ai-processing" role="status">
+                <Sparkles size={17} />
+                {t(
+                  'Reading your document and preparing metadata…',
+                  'جارٍ قراءة الوثيقة وإعداد البيانات الوصفية…',
+                )}
               </div>
             )}
-            <p className="p-subtle">
-              {t(
-                'Malware scanning and DLP are simulated in this prototype. Use sample files for the workshop.',
-                'فحص البرمجيات الخبيثة ومنع تسرب البيانات محاكاة في هذا النموذج. استخدم ملفات تجريبية للورشة.',
+            {error && (
+              <p className="p-error" role="alert">
+                {error}
+              </p>
+            )}
+            <footer className="p-modal-actions">
+              <button
+                type="button"
+                className="p-btn"
+                disabled={busy}
+                onClick={() => (step ? setStep(step - 1) : onClose())}
+              >
+                {step ? t('Back', 'رجوع') : t('Cancel', 'إلغاء')}
+              </button>
+              <span />
+              {record.fileName && (
+                <button
+                  type="button"
+                  className="p-btn"
+                  disabled={busy}
+                  onClick={() => void save(step === 2 ? 'Classified' : 'Draft')}
+                >
+                  {t('Save draft', 'حفظ المسودة')}
+                </button>
               )}
-            </p>
-          </>
-        )}
-        {step === 1 && (
-          <div className="p-form-grid">
-            <Field label={t('Business title *', 'عنوان الوثيقة *')}>
-              <input required value={record.title} onChange={(e) => update('title', e.target.value)} />
-            </Field>
-            <Field label={t('Arabic title', 'العنوان العربي')}>
-              <input dir="rtl" value={record.titleAr} onChange={(e) => update('titleAr', e.target.value)} />
-            </Field>
-            <Field label={t('Document class *', 'فئة الوثيقة *')}>
-              <select required value={record.kind} onChange={(e) => update('kind', e.target.value)}>
-                <option value="">{t('Select a class', 'اختر الفئة')}</option>
-                {state.settings.classes.map((v) => (
-                  <option key={v} value={v}>
-                    {local(v, lang)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('Owning department *', 'الإدارة المالكة *')}>
-              <select
-                value={record.department}
-                disabled={role === 'Department Administrator'}
-                onChange={(e) => update('department', e.target.value)}
+              <button
+                className="p-btn primary"
+                disabled={busy || !record.fileName || (step === 2 && !confirmed)}
               >
-                {departments.map((v) => (
-                  <option key={v} value={v}>
-                    {local(v, lang)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('Sensitivity *', 'درجة الحساسية *')}>
-              <select
-                value={record.sensitivity}
-                onChange={(e) => update('sensitivity', e.target.value as RecordItem['sensitivity'])}
-              >
-                {sensitivities.map((v) => (
-                  <option key={v} value={v}>
-                    {local(v, lang)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('Approval flow *', 'مسار الاعتماد *')}>
-              <select
-                value={record.flow}
-                onChange={(e) => update('flow', e.target.value as RecordItem['flow'])}
-              >
-                {flows.map((v) => (
-                  <option key={v} value={v}>
-                    {local(v, lang)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('Priority', 'الأولوية')}>
-              <select value={record.priority} onChange={(e) => update('priority', e.target.value)}>
-                {['Routine', 'Priority', 'Urgent'].map((v) => (
-                  <option key={v} value={v}>
-                    {local(v, lang)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('Access scope', 'نطاق الوصول')}>
-              <select value={record.scope} onChange={(e) => update('scope', e.target.value)}>
-                {['Department-only', 'Clearance level'].map((v) => (
-                  <option key={v} value={v}>
-                    {local(v, lang)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('Reference / keywords', 'المرجع / الكلمات المفتاحية')}>
-              <input value={record.reference} onChange={(e) => update('reference', e.target.value)} />
-            </Field>
-            <Field label={t('Expiry / review date', 'تاريخ الانتهاء / المراجعة')}>
-              <input
-                required
-                type="date"
-                value={record.expiry}
-                onChange={(e) => update('expiry', e.target.value)}
-              />
-            </Field>
-            <div className="p-span">
-              <Field label={t('Description *', 'الوصف *')}>
-                <textarea
-                  required
-                  rows={3}
-                  value={record.summary}
-                  onChange={(e) => update('summary', e.target.value)}
-                />
-              </Field>
-            </div>
-          </div>
-        )}
-        {step === 2 && (
-          <>
-            <div className="p-review-card">
-              <p className="p-eyebrow">{record.id}</p>
-              <h2>{record.title}</h2>
-              <p>{record.summary}</p>
-              <dl className="p-facts">
-                <dt>{t('Classification', 'التصنيف')}</dt>
-                <dd>
-                  {local(record.kind, lang)} · {local(record.sensitivity, lang)}
-                </dd>
-                <dt>{t('Approval', 'الاعتماد')}</dt>
-                <dd>
-                  {local(record.flow, lang)} · {state.settings.sla} {t('hour SLA', 'ساعة للمعالجة')}
-                </dd>
-                <dt>{t('Destination after approval', 'الوجهة بعد الاعتماد')}</dt>
-                <dd>
-                  {state.settings.library}/{record.department}/{record.kind}
-                </dd>
-                <dt>{t('Original file', 'الملف الأصلي')}</dt>
-                <dd>
-                  {record.fileName} · {(record.size / 1024).toFixed(1)} KB
-                </dd>
-                <dt>SHA-256</dt>
-                <dd className="p-hash">{record.hash}</dd>
-              </dl>
-            </div>
-            <div className="p-note">
-              {t(
-                'Submitting sends this document to the approval queue. It will remain in staging until every required approval is complete.',
-                'يرسل المستند إلى قائمة الاعتماد ويبقى في منطقة التجهيز حتى اكتمال جميع الموافقات المطلوبة.',
-              )}
-            </div>
-          </>
-        )}
-        {error && (
-          <p className="p-error" role="alert">
-            {error}
-          </p>
-        )}
-        <footer className="p-modal-actions">
-          <button type="button" className="p-btn" onClick={() => (step ? setStep(step - 1) : onClose())}>
-            {step ? t('Back', 'رجوع') : t('Cancel', 'إلغاء')}
-          </button>
-          <span />
-          {record.fileName && (
-            <button
-              type="button"
-              className="p-btn"
-              disabled={busy}
-              onClick={() => void save(step === 2 ? 'Classified' : 'Draft')}
-            >
-              {t('Save draft', 'حفظ المسودة')}
-            </button>
-          )}
-          <button className="p-btn primary" disabled={busy || !record.fileName}>
-            {busy
-              ? t('Processing…', 'جارٍ المعالجة…')
-              : step === 2
-                ? t('Submit for approval', 'إرسال للاعتماد')
-                : t('Continue', 'متابعة')}
-          </button>
-        </footer>
-      </form>
+                {busy
+                  ? t('Processing…', 'جارٍ المعالجة…')
+                  : step === 2
+                    ? t('Submit for approval', 'إرسال للاعتماد')
+                    : t('Continue', 'متابعة')}
+              </button>
+            </footer>
+          </form>
+        </div>
+      </div>
     </Modal>
   )
 }
