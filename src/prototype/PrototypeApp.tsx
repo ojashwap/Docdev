@@ -62,6 +62,7 @@ import { SearchPage, AssistantDock } from './Discovery'
 import { ApprovalQueue } from './ApprovalQueue'
 import './prototype.css'
 import './experience.css'
+import './typography.css'
 type Page =
   | 'home'
   | 'documents'

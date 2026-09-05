@@ -141,12 +141,12 @@
   color: #746333;
 }
 .d-moitag strong {
-  font-size: 11px;
+  font-size: var(--p-text-small);
   font-weight: 650;
   display: block;
 }
 .d-moitag small {
-  font-size: 9px;
+  font-size: var(--p-text-caption);
   display: block;
   color: #736d5a;
 }
@@ -232,7 +232,7 @@
   letter-spacing: -0.3px;
 }
 .d-queue-panel > header small {
-  font-size: 11px;
+  font-size: var(--p-text-small);
 }
 .d-queue-panel > header > .p-count {
   margin-inline-start: auto;
@@ -255,7 +255,7 @@
   border: 0 !important;
   background: transparent !important;
   min-height: 35px !important;
-  font-size: 12px !important;
+  font-size: var(--p-text-ui) !important;
   padding: 5px !important;
   width: 100%;
 }
@@ -269,7 +269,7 @@
   padding: 5px 10px;
   background: #f4f1e7;
   border-radius: 5px;
-  font-size: 11px;
+  font-size: var(--p-text-small);
   color: #706647;
 }
 .d-queue-filters button[aria-pressed='true'] {
@@ -309,14 +309,14 @@
   min-width: 0;
 }
 .d-review-item-top strong {
-  font-size: 12px;
+  font-size: var(--p-text-ui);
   line-height: 1.6;
   display: block;
   font-weight: 650;
 }
 .d-review-item-top small {
   display: block;
-  font-size: 9px;
+  font-size: var(--p-text-caption);
   margin-top: 3px;
 }
 .d-review-item-top > svg {
@@ -329,16 +329,16 @@
   justify-content: space-between;
   gap: 5px;
   margin-top: 12px;
-  font-size: 10px;
+  font-size: var(--p-text-caption);
 }
 .d-review-item-meta .p-badge {
-  font-size: 9px;
+  font-size: var(--p-text-caption);
 }
 .d-review-item-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: var(--p-text-caption);
   color: #6e623f;
   margin-top: 9px;
 }
@@ -352,7 +352,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
+  font-size: var(--p-text-caption);
   color: #756d53;
   border-top: 1px solid #e6e0d3;
 }
@@ -372,7 +372,7 @@
   font-weight: 500;
 }
 .d-review-welcome > p:not(.p-eyebrow) {
-  font-size: 13px;
+  font-size: var(--p-text-body);
   max-width: 420px;
   line-height: 1.9;
 }
@@ -410,7 +410,7 @@
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 35px;
-  font-size: 10px;
+  font-size: var(--p-text-caption);
   color: #746b53;
 }
 .d-review-benefits span + span:before {
@@ -430,7 +430,7 @@
     font-size: 24px;
   }
   .p-app.d-has-review .p-page-heading .p-eyebrow {
-    font-size: 9px !important;
+    font-size: var(--p-text-caption) !important;
   }
   .p-app.d-has-review .p-page-heading > div > p:last-child,
   .p-app.d-has-review .p-page-heading > .p-btn {
@@ -449,7 +449,7 @@
     padding: 15px 13px;
   }
   .p-app.d-has-review .d-queue-panel > header h2 {
-    font-size: 14px;
+    font-size: var(--p-text-body);
   }
   .p-app.d-has-review .d-queue-list {
     max-height: calc(100dvh - 375px);
@@ -512,7 +512,7 @@
     max-height: calc(100dvh - 10px);
   }
   .d-review-item-top strong {
-    font-size: 14px;
+    font-size: var(--p-text-body);
   }
   .d-queue-panel > header {
     padding-top: 20px;

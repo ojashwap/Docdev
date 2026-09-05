@@ -29,15 +29,15 @@
   flex: 1;
 }
 .p-registration-preview-heading strong {
-  font-size: 13px;
+  font-size: var(--p-text-body);
   color: #373b33;
 }
 .p-registration-preview-heading small {
-  font-size: 11px;
+  font-size: var(--p-text-small);
   color: #73776e;
 }
 .p-registration-preview-heading > span {
-  font-size: 10px;
+  font-size: var(--p-text-caption);
   padding: 4px 7px;
   border: 1px solid #d9dfd1;
   border-radius: 5px;
@@ -61,7 +61,7 @@
 }
 .p-registration-preview-empty p {
   color: #777a71;
-  font-size: 13px;
+  font-size: var(--p-text-body);
   line-height: 1.7;
   max-width: 290px;
 }
@@ -96,7 +96,7 @@
   display: flex;
   gap: 7px;
   color: #73776c;
-  font-size: 11px;
+  font-size: var(--p-text-small);
   line-height: 1.6;
   margin: 15px 0 0;
   align-items: center;
@@ -139,7 +139,7 @@
 }
 .p-registration-form .p-drop input {
   max-width: 100%;
-  font-size: 12px;
+  font-size: var(--p-text-ui);
 }
 .p-registration-sample {
   display: flex;
@@ -153,17 +153,17 @@
 }
 .p-registration-sample .p-btn {
   min-height: 39px;
-  font-size: 11px;
+  font-size: var(--p-text-small);
 }
 .p-registration-form .p-file-summary {
   padding: 12px;
 }
 .p-registration-form .p-file-summary strong {
-  font-size: 12px;
+  font-size: var(--p-text-ui);
   overflow-wrap: anywhere;
 }
 .p-registration-form .p-file-summary small {
-  font-size: 10px;
+  font-size: var(--p-text-caption);
 }
 .p-registration-form .p-modal-actions {
   position: sticky;
@@ -176,7 +176,7 @@
   gap: 8px;
 }
 .p-registration-form .p-modal-actions .p-btn {
-  font-size: 12px;
+  font-size: var(--p-text-ui);
 }
 .p-ai-classification {
   border: 1px solid #cdded4;
@@ -205,12 +205,12 @@
   flex: 1;
 }
 .p-ai-classification-heading strong {
-  font-size: 13px;
+  font-size: var(--p-text-body);
   display: block;
 }
 .p-ai-classification-heading small {
   display: block;
-  font-size: 10px;
+  font-size: var(--p-text-caption);
   margin-top: 4px;
   color: #6b7c70;
 }
@@ -220,7 +220,7 @@
   text-align: end;
 }
 .p-ai-confidence small {
-  font-size: 8px;
+  font-size: var(--p-text-caption);
   font-weight: 400;
   max-width: 72px;
 }
@@ -240,11 +240,11 @@
   gap: 4px;
 }
 .p-ai-suggestion-grid small {
-  font-size: 10px;
+  font-size: var(--p-text-caption);
   color: #758277;
 }
 .p-ai-suggestion-grid strong {
-  font-size: 12px;
+  font-size: var(--p-text-ui);
   color: #354d3e;
 }
 .p-ai-suggestion-grid .overridden {
@@ -252,11 +252,11 @@
   background: #fffdf5;
 }
 .p-ai-suggestion-grid span {
-  font-size: 9px;
+  font-size: var(--p-text-caption);
   color: #876f2f;
 }
 .p-ai-classification details {
-  font-size: 11px;
+  font-size: var(--p-text-small);
   line-height: 1.6;
   margin-top: 12px;
 }
@@ -277,11 +277,11 @@
   align-items: center;
   gap: 5px;
   color: #87702e;
-  font-size: 11px;
+  font-size: var(--p-text-small);
   margin: 10px 0 0;
 }
 .p-ai-edit-hint {
-  font-size: 10px;
+  font-size: var(--p-text-caption);
   color: #6b7b6e;
   line-height: 1.6;
   margin: 10px 0 0;
@@ -292,7 +292,7 @@
   gap: 8px;
   padding: 12px 0;
   color: #7b6736;
-  font-size: 12px;
+  font-size: var(--p-text-ui);
 }
 .p-classification-confirm {
   display: flex;
@@ -313,13 +313,13 @@
   margin: 2px 0 0;
 }
 .p-classification-confirm strong {
-  font-size: 13px;
+  font-size: var(--p-text-body);
   display: block;
   color: #4c503f;
 }
 .p-classification-confirm small {
   display: block;
-  font-size: 11px;
+  font-size: var(--p-text-small);
   line-height: 1.6;
   color: #797b6a;
   margin-top: 5px;

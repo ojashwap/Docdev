@@ -21,6 +21,7 @@ No API, Azure account, credentials or `.env` file is required. Production integr
 
 See [the workshop walkthrough and M1–M15 coverage matrix](docs/prototype-demo.md) for presentation steps and exact simulation boundaries.
 
+- Typography: bundled Inter and Noto Sans Arabic, readable text sizes and responsive spacing; no external font-service requests.
 - Original uploads: stored in IndexedDB, limited to 20 MB per file in the browser demo.
 - Records, settings and workshop notes: stored locally and preserved across refresh.
 - Uploads: local rule-based suggestions from filenames and supported text, with editable fields and explicit human confirmation.
