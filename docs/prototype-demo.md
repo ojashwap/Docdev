@@ -46,6 +46,6 @@ An experience prototype for the functional and business design v2.0. Demo identi
 
 Each browser/origin has independent state. There is no shared collaboration or real authorization. Refresh preserves metadata and originals; reset clears only this prototype's state. Uploads and notes are never included in the static build or repository.
 
-## Optional hosting
+## Hosted client demo
 
-The GitHub Pages workflow is manual. Select **GitHub Actions** as the repository's Pages source, then run **Publish prototype to GitHub Pages** when hosting is wanted. It builds with `/intdocayaprototype/` as the asset base and uploads only `dist/`. It does not upload browser state. The workflow's completion output provides the actual site URL.
+The live prototype is available at **https://ojashwas.github.io/intdocayaprototype/**. GitHub Pages is configured to use GitHub Actions. To publish later changes, run **Publish prototype to GitHub Pages** after the quality workflow succeeds. It builds with `/intdocayaprototype/` as the asset base and uploads only `dist/`. It does not upload browser state. Each client starts with their own sample workspace.

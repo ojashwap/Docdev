@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { readFile } from 'node:fs/promises'
 
 async function signIn(page: Page) {
-  await page.goto('/')
+  await page.goto('./')
   await page.getByRole('button', { name: 'Enter demo workspace', exact: true }).click()
 }
 async function navigate(page: Page, name: string) {
@@ -124,7 +124,7 @@ test('administration config, recovery, notifications and reporting exports', asy
 
 test('desktop, Arabic RTL, mobile and accessible controls', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await page.goto('/')
+  await page.goto('./')
   await page.screenshot({ path: 'test-results/prototype-signin.png', fullPage: true })
   await page.getByRole('button', { name: 'Enter demo workspace', exact: true }).click()
   await page.screenshot({ path: 'test-results/prototype-desktop.png', fullPage: true })

@@ -4,6 +4,8 @@
 
 An interactive Arabic/English client demonstration with sample records, manual registration, four approval patterns, publishing recovery, cited knowledge search, correspondence, records governance, reporting, administration, audit and client workshop feedback.
 
+**[Open the hosted client demo](https://ojashwas.github.io/intdocayaprototype/)** — select **Enter demo workspace**. The application works without a local server.
+
 ## Start the prototype
 
 Requires Node.js 22.13–26 and npm 10–11.
@@ -34,6 +36,12 @@ npm run test:e2e
 ```
 
 Browser tests cover registration through cited search and legal holds, role filtering, correspondence, feedback persistence, Arabic/RTL, mobile and an accessibility scan. Local Windows tests use installed Chrome; CI installs Chromium.
+
+To run the same tests against the hosted build:
+
+```powershell
+npx cross-env DOCAYA_E2E_URL=https://ojashwas.github.io/intdocayaprototype/ npm run test:e2e
+```
 
 ## Static hosting
 
