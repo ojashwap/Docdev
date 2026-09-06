@@ -10,7 +10,13 @@
     },
     "az": true,
     "npm test": true,
-    "git add": true
+    "git add": true,
+    "npm run typecheck": true,
+    "npm run test:unit": true,
+    "/^git show HEAD:server/services/azure-search\\.mjs \\| Select-Object -First 25; node --check server/services/azure-search\\.mjs$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   },
   "chat.agentSkillsLocations": {
     ".agents/skills": true,
