@@ -1,35 +1,73 @@
-# Docaya prototype
+# Docaya | دوكايا
 
-**Docaya · دوكايا · Document Management Intelligence / ذكاء إدارة الوثائق**
+**Document Management Intelligence · ذكاء إدارة الوثائق**
 
-An interactive Arabic/English client demonstration with synthetic UAE Ministry of Interior records, editable automatic classification, queue-based review drawers, thumbnail discovery, a floating Docaya assistant, four approval patterns, publishing recovery, cited knowledge search, correspondence, records governance, reporting, administration, audit and client workshop feedback.
+An interactive English/Arabic document management prototype for UAE Ministry of Interior client workshops. Explore document capture, approvals, publishing, discovery, records governance and administration with synthetic MOI scenarios.
 
-**[Open the hosted client demo](https://ojashwas.github.io/intdocayaprototype/)** — select **Enter demo workspace**. The application works without a local server.
+**[Open the live demo](https://ojashwas.github.io/intdocayaprototype/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
 
-## Start the prototype
+Select **Enter demo workspace** and use **System Administrator** to explore all modules. Switch language to demonstrate Arabic and right-to-left layouts.
 
-Requires Node.js 22.13–26 and npm 10–11.
+> This is a browser-based UI/UX prototype. Sample records and identities are fictional; AI, authentication and external integrations are simulated. No backend, Azure account, credentials or `.env` file is required to run it.
+
+## Latest experience
+
+| Area                       | What you can demonstrate                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Document registration      | Upload an original or choose a sample, review its preview and complete Capture, Classify and Review & submit.                  |
+| Automatic classification   | Inspect local suggestions and their rationale, override fields and explicitly confirm classification in the registration form. |
+| Approval queue             | Keep the desktop queue visible alongside a drawer with document preview, details, decisions and next-document navigation.      |
+| Search & Ask Docaya        | Browse document thumbnails or a list, filter results, save queries and open cited records.                                     |
+| Docaya AI Assistant        | Open the floating bottom-right assistant, inspect source thumbnails and provide response feedback.                             |
+| UAE design and readability | Subtle UAE landmark decoration, warm ivory and gold, bundled Inter and Noto Sans Arabic, clearer text and responsive layouts.  |
+| Governance and workshops   | Explore holds, retention, correspondence, reports, audit history and M1–M15 coverage; record and export client expectations.   |
+
+![Docaya document register with readable typography and synthetic UAE MOI records](docs/images/docaya-register.png)
+
+![Docaya approval drawer with the queue, document preview and review details visible together](docs/images/docaya-review.png)
+
+The review drawer has no blurred backdrop. On wide screens the queue remains visible while the document and its details appear side by side. On narrow screens the content stacks; closing the drawer returns to the queue.
+
+## Run locally
+
+Prerequisites: **Node.js 22.13–26** and **npm 10–11**. Run these commands from the repository root:
 
 ```powershell
 npm ci
-npm start
+npm start -- --strictPort
 ```
 
-Open **http://localhost:5173/** and select **Enter demo workspace**. Choose System Administrator to demonstrate every module. Use the language toggle for Arabic/RTL and the persona selector for access rules.
+Open **[http://localhost:5173/](http://localhost:5173/)** and select **Enter demo workspace**. Keep the terminal running; press `Ctrl+C` to stop the server.
 
-No API, Azure account, credentials or `.env` file is required. Production integrations are explicitly simulated. This is a UI/UX prototype, not a production security or compliance implementation.
+If port 5173 is already occupied, use another port:
 
-See [the workshop walkthrough and M1–M15 coverage matrix](docs/prototype-demo.md) for presentation steps and exact simulation boundaries.
+```powershell
+npm start -- --port 5175 --strictPort
+```
 
-- Typography: bundled Inter and Noto Sans Arabic, readable text sizes and responsive spacing; no external font-service requests.
-- Original uploads: stored in IndexedDB, limited to 20 MB per file in the browser demo.
-- Records, settings and workshop notes: stored locally and preserved across refresh.
-- Uploads: local rule-based suggestions from filenames and supported text, with editable fields and explicit human confirmation.
-- Reviews: queue stays visible beside a document-and-details drawer; no blurred backdrop.
-- Ask Docaya: thumbnail browsing and a floating assistant with cited excerpts from accessible, published and indexed sample text; no live AI.
-- Workshop: capture expectations and export CSV. Export notes before resetting demo data.
+Then open **http://localhost:5175/**. Use `Ctrl+F5` if the browser shows older assets after an update. The language toggle changes English/Arabic; `Ctrl+J` on Windows or `Cmd+J` on macOS toggles the assistant while the workspace is open.
 
-## Validate the prototype
+## Client demo route
+
+1. **Overview and document register:** introduce Docaya, synthetic MOI records and Arabic layout.
+2. **Register document:** choose a traffic, civil defence or evidence sample; inspect classification, override a field and confirm your review.
+3. **Approvals:** review the original beside its details, approve or return with a reason, and continue through the queue.
+4. **Staging & publishing → Search indexing → Run demo batch:** index published records, then demonstrate thumbnail search and the floating assistant.
+5. **Records & retention, Correspondence and Client workshop:** demonstrate governance scenarios and capture the client's expectations; export workshop notes to CSV.
+
+The [detailed demonstration guide](docs/prototype-demo.md) includes a fifteen-minute walkthrough, preview behavior and the implemented/future scope for all fifteen modules.
+
+## Data and prototype boundaries
+
+- **Local workspace:** documents, settings and workshop notes persist in localStorage; uploaded originals are stored in IndexedDB. Localhost and the hosted site have separate workspaces. Git pushes and deployments do not synchronize browser data.
+- **Uploads:** PDF, DOCX, XLSX, PPTX, PNG, JPEG, TIFF and TXT, up to 20 MB per file. Hashing, basic file-header checks and duplicate detection are demonstrated; these are not malware or DLP scanning.
+- **Classification:** local rules inspect filenames and up to the first 12,000 characters of TXT files. Suggestions are editable, and confidence indicates a rule score. There is no PDF/Office text extraction, image OCR or model inference.
+- **Discovery:** retrieval matches registered metadata and summaries from accessible, published and indexed records. Answers cite those records. It does not search the full contents of arbitrary uploads or call a live LLM.
+- **Previews:** supported images, TXT and browser-supported PDF originals can be previewed. Office files and PDF thumbnails use covers. Seeded documents use marked sample previews and downloadable sample text.
+- **Integrations:** identity, signatures, publishing destinations, notifications and correspondence demonstrate local state transitions. Browser role controls are not production authorization, and no external message is sent.
+- **Reset:** export workshop notes before resetting demo data. Reset removes this prototype's local records, uploaded originals and notes and restores the sample workspace.
+
+## Validate changes
 
 ```powershell
 npm run build
@@ -38,97 +76,42 @@ npm test
 npm run test:e2e
 ```
 
-Browser tests cover classification overrides, review queues, thumbnail search, the floating assistant, registration through cited search and legal holds, role filtering, correspondence, feedback persistence, Arabic/RTL, mobile and an accessibility scan. Local Windows tests use installed Chrome; CI installs Chromium.
+The prototype browser suite covers nine journeys, including classification, approval flows, search, governance, correspondence, administration and Arabic accessibility. The local configuration uses installed Chrome; CI installs Chromium. See [playwright.prototype.config.ts](playwright.prototype.config.ts).
 
-To run the same tests against the hosted build:
+To run those browser journeys against the hosted build:
 
 ```powershell
 npx cross-env DOCAYA_E2E_URL=https://ojashwas.github.io/intdocayaprototype/ npm run test:e2e
 ```
 
-## Static hosting
+The latest UI revision was also checked for loaded bilingual fonts, desktop/mobile layout, review and registration drawers, and automated accessibility findings. These checks support prototype quality; they do not establish production compliance.
 
-`npm run build` produces `dist/`. Preview with `npm run preview` or serve from a static host. GitHub Pages publishes the tested commit after the Prototype quality workflow succeeds for a push to main. Manual publishing remains available; see the demo guide.
+## Publish to GitHub Pages
 
-Prototype repository: [Ojashwas/intdocayaprototype](https://github.com/Ojashwas/intdocayaprototype).
+Repository: **[Ojashwas/intdocayaprototype](https://github.com/Ojashwas/intdocayaprototype)**.
 
-The default entry point is `src/prototype/PrototypeApp.tsx`. It makes no production API calls.
+Push changes to **`main`**. [Prototype quality](.github/workflows/ci.yml) runs first; after a successful push run, [Publish prototype to GitHub Pages](.github/workflows/prototype-pages.yml) builds and deploys that exact tested commit. Pull-request runs do not publish. The build uses `/intdocayaprototype/` as its asset base and publishes only `dist/`.
 
-<details>
-<summary>Legacy connected application reference — not required for the prototype</summary>
+Manual publishing is also available in GitHub Actions. A manual run builds the selected revision and does not require a preceding successful quality run, so complete validation first.
 
-Docaya is a secure, bilingual document-governance workspace for controlled records, approvals, notifications, audit, and administration. This repository implements the v1.1 remediation baseline from `Docaya-DMS-Specification.md`.
-
-## Prerequisites
-
-- Node.js 22.13–26 and npm 10–11
-- Azure CLI with Bicep for infrastructure validation
-- Docker for production-image builds
-- Playwright Chromium and k6 for E2E/accessibility/load gates
-- PostgreSQL 16 for shared environments; SQLite is restricted to deliberate local development and tests
-
-## Local startup
+For a local production-build preview:
 
 ```powershell
-Copy-Item .env.example .env
-npm ci
-npm run dev:api
-npm run dev
+npm run build
+npm run preview -- --host localhost --port 4173 --strictPort
 ```
 
-Open `http://localhost:5173`, then use **Continue with organizational SSO**. The local button obtains a one-hour, signed development token; `AUTH_MODE=development` is rejected outside development/test. Never enter a real password in the prototype.
+Open **http://localhost:4173/**. Each origin has independent demo data, including the production preview port.
 
-## Environment
+## Documentation
 
-`.env.example` documents every supported setting. Production requires `AUTH_MODE=entra`, `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, an allowlisted `CORS_ALLOWED_ORIGINS`, `DATABASE_URL` (or compatibility alias `POSTGRES_URL`) supplied as a Container Apps secret reference, and explicit SharePoint site/drive identifiers when Graph storage is enabled. Production fails closed if SQLite, wildcard CORS, incomplete Entra configuration, or an unvalidated PostgreSQL store is selected.
+| Document                                                                    | Purpose                                                                                               |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Client demonstration guide](docs/prototype-demo.md)                        | Walkthrough, current functionality, typography, persistence and M1–M15 coverage.                      |
+| [Architecture](docs/architecture.md)                                        | Current browser implementation, source map, storage and publishing; retained connected-system design. |
+| [Enterprise specification](<docs/Solution Doc/Docaya-DMS-Specification.md>) | Original enterprise requirements and engineering baseline, with a current prototype status note.      |
+| [Threat model](docs/threat-model.md)                                        | Retained connected-application security design reference.                                             |
+| [Operations runbook](docs/runbooks/operations.md)                           | Retained API and infrastructure operations reference.                                                 |
+| [API contract](docs/api/openapi.json)                                       | Retained connected-application API contract.                                                          |
 
-## Commands
-
-| Command                    | Purpose                                 |
-| -------------------------- | --------------------------------------- |
-| `npm run build`            | TypeScript and Vite production build    |
-| `npm run typecheck`        | Strict TypeScript check                 |
-| `npm run lint`             | ESLint with zero warnings               |
-| `npm run format:check`     | Prettier verification                   |
-| `npm test`                 | Unit coverage and API integration tests |
-| `npm run test:e2e`         | Playwright critical journeys            |
-| `npm run test:a11y`        | axe browser checks                      |
-| `npm run test:load`        | k6 search/list load profile             |
-| `npm run security:audit`   | Production dependency audit             |
-| `npm run openapi:validate` | OpenAPI 3.1 policy validation           |
-| `npm run infra:build`      | Bicep compilation                       |
-
-## Architecture
-
-The React 18 frontend is divided into app shell, accessible components, domain features, i18n catalogs, typed services, styles, and shared types. The Node API is composed from validated configuration, security middleware, versioned routes, services, and migration-controlled repositories. Every business route is under `/api/v1`, requires a verified bearer token, applies deny-by-default capability checks, and returns a request ID in a normalized error envelope.
-
-Upload sessions accept bounded binary chunks, support cancellation/retry, quarantine before commit, calculate SHA-256, and run malware/DLP adapters before metadata is committed. The included deterministic scanner is development-only; the production deployment must bind the approved scanning service and verify interruption/load evidence.
-
-See [architecture](docs/architecture.md), [threat model](docs/threat-model.md), [API contract](docs/api/openapi.json), and [operations runbook](docs/runbooks/operations.md).
-
-### Notifications and administration
-
-Notifications are persisted per tenant and support listing, mark-all-read, individual
-read/unread state, and category preferences through `/api/v1/notifications`.
-The Admin Center is organized into Overview, Users, and Governance settings sections.
-Overview shows live platform dependency health sourced from `/health/ready` (database,
-search, cache, event bus). Users can be searched and filtered by status, invited via
-`POST /api/v1/admin/users`, and have their role or lifecycle status (invited, active,
-suspended, deprovisioned) updated in place via `PATCH /api/v1/admin/users/:id` — both
-require `admin:write` and are fully audited; an administrator cannot suspend or
-deprovision their own account. Governance settings expose language, retention, workflow
-enforcement, and document-event notification defaults, updatable through
-`/api/v1/admin/settings` with `admin:write`. SQLite and PostgreSQL migrations are kept in
-sync under `server/db/migrations` and `server/db/postgres-migrations`.
-
-## Deployment
-
-1. Build and scan an immutable image, push it to ACR, and pass its release tag or digest to `containerImage`.
-2. Run `az deployment group validate` and `az deployment group what-if` with an identity permitted to create the declared least-privilege role assignments.
-3. Review private endpoint DNS, managed-identity access, policy compliance, and the image scan.
-4. Apply migrations, rehearse rollback, deploy progressively, then execute synthetic login/search/upload/view/workflow/audit checks.
-5. Record evidence under the release system; generated credentials, ARM JSON, and evidence output are ignored by Git.
-
-Cloud release gates are not considered passed merely because Bicep compiles. Tenant consent, target-scope validation, reviewed what-if, policy/RBAC evidence, real malware/DLP integration, private DNS verification from the running app, backup/restore rehearsal, and product/security/accessibility/operations approvals remain environment-owned gates.
-
-</details>
+The default entry point is `src/main.tsx` → `src/prototype/PrototypeApp.tsx`. Earlier `src/App.tsx`, `server/` and infrastructure files remain in the repository as connected-application references; the prototype startup commands do not activate that application or its organizational sign-in.

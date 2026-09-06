@@ -20,6 +20,8 @@
 
 # 📁 Docaya — Document Management System
 
+> **Prototype implementation note — 6 September 2026:** This file retains the original enterprise design and remediation baseline. Its architecture, integrations and non-functional targets are broader than the current browser prototype. For the implemented MOI demo, updated review drawers, editable classification suggestions, thumbnail discovery, bilingual typography and exact simulation boundaries, read the [client demonstration guide](../prototype-demo.md), [current architecture](../architecture.md) and [repository README](../../README.md). The prototype does not establish that production services or compliance targets in this specification have been delivered.
+
 > **Tagline:** *"Every document. One home. Zero friction."*
 > A secure, intelligent, enterprise-grade Document Management System (DMS) with best-in-class UX, granular access control, a real-time Notification Center, and a fully configurable Admin Center.
 
