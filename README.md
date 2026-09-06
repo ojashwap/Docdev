@@ -6,7 +6,7 @@ An interactive English/Arabic document management prototype for UAE Ministry of 
 
 **[Open the live demo](https://ojashwas.github.io/intdocayaprototype/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
 
-<a href="public/brand/docaya-welcome.png"><img src="public/brand/docaya-welcome.png" width="680" alt="Three-dimensional Docaya welcome artwork in UAE-inspired colours"></a>
+<a href="public/brand/docaya-welcome-v2.png"><img src="public/brand/docaya-welcome-v2.png" width="680" alt="Docaya welcome artwork with an open paper fan and light UAE-inspired civic architecture"></a>
 
 Select **Enter demo workspace** and use **System Administrator** to explore all modules. Switch language to demonstrate Arabic and right-to-left layouts.
 
@@ -14,15 +14,15 @@ Select **Enter demo workspace** and use **System Administrator** to explore all 
 
 ## Latest experience
 
-| Area                       | What you can demonstrate                                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Document registration      | Upload an original or choose a sample, review its preview and complete Capture, Classify and Review & submit.                  |
-| Automatic classification   | Inspect local suggestions and their rationale, override fields and explicitly confirm classification in the registration form. |
-| Approval queue             | Scan pending documents by due date, open a focused review drawer, approve or return with a reason, and continue explicitly.    |
-| Search & Ask Docaya        | Browse document thumbnails or a list, filter results, save queries and open cited records.                                     |
-| Docaya AI Assistant        | Open the floating bottom-right assistant, inspect source thumbnails and provide response feedback.                             |
-| UAE design and readability | Distinct Docaya and Ask Docaya AI marks, UAE-inspired colours, a 3D welcome illustration, bundled Inter and Noto Sans Arabic.  |
-| Governance and workshops   | Explore holds, retention, correspondence, reports, audit history and M1–M15 coverage; record and export client expectations.   |
+| Area                       | What you can demonstrate                                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Document registration      | Upload an original or choose a sample, review its preview and complete Capture, Classify and Review & submit.                             |
+| Automatic classification   | Inspect local suggestions and their rationale, override fields and explicitly confirm classification in the registration form.            |
+| Approval queue             | Scan pending documents by due date, open a focused review drawer, approve or return with a reason, and continue explicitly.               |
+| Search & Ask Docaya        | Browse document thumbnails or a list, filter results, save queries and open cited records.                                                |
+| Docaya AI Assistant        | Open the floating bottom-right assistant, inspect source thumbnails and provide response feedback.                                        |
+| UAE design and readability | Open page/ribbon Docaya and orbit AI symbols, UAE-inspired colours, a paper-fan welcome illustration, bundled Inter and Noto Sans Arabic. |
+| Governance and workshops   | Explore holds, retention, correspondence, reports, audit history and M1–M15 coverage; record and export client expectations.              |
 
 ![Docaya document register with readable typography and synthetic UAE MOI records](docs/images/docaya-register.png)
 

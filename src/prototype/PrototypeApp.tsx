@@ -420,7 +420,7 @@ export default function PrototypeApp() {
           <div>
             <img
               className="d-welcome-art"
-              src={`${import.meta.env.BASE_URL}brand/docaya-welcome.png`}
+              src={`${import.meta.env.BASE_URL}brand/docaya-welcome-v2.png`}
               width={260}
               height={173}
               alt=""
