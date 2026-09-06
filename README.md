@@ -12,6 +12,17 @@ Select **Enter demo workspace** and use **System Administrator** to explore all 
 
 > This is a browser-based UI/UX prototype. Sample records and identities are fictional; AI, authentication and external integrations are simulated. No backend, Azure account, credentials or `.env` file is required to run it.
 
+## Approved branding
+
+The application uses the following selected images consistently across the login screen and workspace:
+
+| Identity          | Selected image                                                                     | Application placement                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Docaya**        | [Emerald D folder with documents and UAE skyline](public/brand/docaya-welcome.png) | Full artwork on login, a compact 60 px view in the top-left corner, favicon and Apple touch icon. |
+| **Ask Docaya AI** | [D speech bubble with white sparkle](public/brand/ask-docaya-mark.png)             | Assistant launcher, panel, responses, search and discovery.                                       |
+
+See the [login screenshot](docs/images/docaya-login.png), [brand guide](docs/branding.md) and [latest release notes](docs/release-notes.md). Earlier logo explorations remain in the repository as reference assets.
+
 ## Latest experience
 
 | Area                       | What you can demonstrate                                                                                                       |
@@ -116,6 +127,7 @@ Open **http://localhost:4173/**. Each origin has independent demo data, includin
 | Document                                                                    | Purpose                                                                                               |
 | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [Client demonstration guide](docs/prototype-demo.md)                        | Walkthrough, current functionality, typography, persistence and M1–M15 coverage.                      |
+| [Release notes](docs/release-notes.md)                                      | Approved branding, current demo improvements and validation of the published application.             |
 | [Brand assets and usage](docs/branding.md)                                  | Docaya and AI logo gallery, welcome artwork, palette, file links and presentation guidance.           |
 | [Architecture](docs/architecture.md)                                        | Current browser implementation, source map, storage and publishing; retained connected-system design. |
 | [Enterprise specification](<docs/Solution Doc/Docaya-DMS-Specification.md>) | Original enterprise requirements and engineering baseline, with a current prototype status note.      |

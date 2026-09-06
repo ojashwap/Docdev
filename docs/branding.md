@@ -41,7 +41,7 @@ The shared [BrandMarks.tsx](../src/prototype/BrandMarks.tsx) components provide 
 
 ## In the application
 
-The main Docaya landscape identity appears in full on login at 260 × 173 px and in a 60 × 60 px centre-focused presentation at the top-left of the application. The favicon and Apple touch icon reference the same original landscape file. The selected AI logo identifies discovery, assistant responses and the floating Ask Docaya button. Native **Docaya / دوكايا** labels remain beside the artwork where appropriate.
+The main Docaya landscape identity appears in full on login at 260 × 173 px on desktop and 210 × 140 px on mobile. A 60 × 60 px centre-focused presentation appears at the top-left of the application. The favicon and Apple touch icon reference the same original landscape file. The selected AI logo identifies discovery, assistant responses and the floating Ask Docaya button. Native **Docaya / دوكايا** labels remain beside the artwork where appropriate.
 
 <a href="images/docaya-login.png"><img src="images/docaya-login.png" width="840" alt="Docaya login showing the full selected landscape identity and native bilingual labels"></a>
 
