@@ -44,6 +44,8 @@ The registration form requires confirmation before its submit action. The confir
 
 ![Pending approval inbox with departments, due dates and a separate Returned view](images/docaya-approvals.png)
 
+In every document list, the record currently open in the detail drawer stays highlighted with a tinted row and a green accent bar, so the selection remains visible beside the drawer.
+
 Open **Approvals** to see a full-width list of documents awaiting approval. **To review** is the default; approved documents and records awaiting owner changes do not appear in it. Each row shows the document title, reference, department and actual due date, with overdue dates marked clearly. The earliest due document appears first.
 
 - Use **Search approval queue** and **Overdue only** to narrow the list. **Review next** opens the first document in that view.
@@ -103,7 +105,7 @@ Accepted formats are **PDF, DOCX, XLSX, PPTX, PNG, JPEG, TIFF and TXT**, with a 
 
 The selected main Docaya identity is the three-dimensional emerald **D** folder with white paper sheets and a pale UAE skyline. Login shows the complete landscape image; the top-left brand area uses a centre-focused square CSS presentation of the same unmodified file. All **Ask Docaya AI** features use the selected emerald **D** speech-bubble logo with its white sparkle. These are the user's chosen existing images, with no new artwork generation for this selection.
 
-The branding draws on UAE green, red, near-black and white; the document workspace retains warm ivory, muted gold and a faint decorative UAE-inspired skyline. Native English/Arabic wordmarks preserve readability. See [Brand assets and usage](branding.md) for the selected PNG pair and palette. The flat Docaya logo and all `-v2` assets are retained as archived explorations, not active branding.
+The branding draws on UAE green, red, near-black and white; the document workspace retains warm ivory, muted gold and a faint decorative UAE-inspired skyline. The overview hero and dark banners share the same deep emerald green as the login page for a consistent, cooler palette throughout. Native English/Arabic wordmarks preserve readability. See [Brand assets and usage](branding.md) for the selected PNG pair and palette. The flat Docaya logo and all `-v2` assets are retained as archived explorations, not active branding.
 
 The artwork and decorative seal are not official ministry emblems. Synthetic scenarios cover Traffic & Patrols, Civil Defence, Forensic Sciences, Residency & Identity, and Strategy & Governance.
 

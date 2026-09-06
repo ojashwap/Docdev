@@ -863,6 +863,16 @@
 .p-table tbody tr:hover {
   background: #fcfdf9;
 }
+.p-table tbody tr.selected,
+.p-table tbody tr.selected:hover {
+  background: #eaf0e8;
+}
+.p-table tbody tr.selected td:first-child {
+  border-inline-start: 3px solid var(--p-green);
+}
+.p-table tbody tr.selected .p-document-link strong {
+  color: var(--p-green);
+}
 .p-table td > small {
   display: block;
   font-size: var(--p-text-caption);

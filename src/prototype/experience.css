@@ -78,8 +78,8 @@
   background: #638567;
 }
 .p-hero {
-  background: linear-gradient(118deg, #263e35, #334c3e);
-  box-shadow: 0 8px 26px #3f3b2210;
+  background: linear-gradient(118deg, #163e35, #21584a);
+  box-shadow: 0 8px 26px #16352c1a;
 }
 .p-hero h2 em {
   color: #dac28b;
@@ -130,7 +130,7 @@
   color: #606c45;
 }
 .p-dark-banner {
-  background: linear-gradient(130deg, #314b3b, #243b31);
+  background: linear-gradient(130deg, #21584a, #163e35);
 }
 .d-moitag {
   display: flex;

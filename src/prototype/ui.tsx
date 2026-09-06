@@ -69,11 +69,13 @@ export function DocumentTable({
   lang,
   t,
   onOpen,
+  selectedId,
 }: {
   rows: RecordItem[]
   lang: Language
   t: Translate
   onOpen: (r: RecordItem) => void
+  selectedId?: string
 }) {
   if (!rows.length) return <Empty t={t} />
   return (
@@ -93,7 +95,11 @@ export function DocumentTable({
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id}>
+            <tr
+              key={r.id}
+              className={selectedId === r.id ? 'selected' : undefined}
+              aria-current={selectedId === r.id ? 'true' : undefined}
+            >
               <td>
                 <button className="p-document-link" onClick={() => onOpen(r)}>
                   <span className="p-file">

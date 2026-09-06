@@ -79,6 +79,7 @@ export function SearchPage({
   onOpen,
   notify,
   initialQuery,
+  selectedId,
 }: PageProps & { initialQuery: string }) {
   const [query, setQuery] = useState(initialQuery)
   const [kind, setKind] = useState('all')
@@ -362,7 +363,7 @@ export function SearchPage({
         </div>
       ) : (
         <div className="p-card no-pad">
-          <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} />
+          <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} selectedId={selectedId} />
         </div>
       )}
     </>

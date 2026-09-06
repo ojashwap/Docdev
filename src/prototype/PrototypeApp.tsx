@@ -310,7 +310,17 @@ export default function PrototypeApp() {
     setSelectedId(record.id)
     setState((s) => addEvent(s, role, 'Document viewed', 'تم عرض الوثيقة', record.id))
   }
-  const props: PageProps = { state, setState, role, lang, t, visible, onOpen: open, notify }
+  const props: PageProps = {
+    state,
+    setState,
+    role,
+    lang,
+    t,
+    visible,
+    onOpen: open,
+    notify,
+    selectedId: selected?.id || '',
+  }
   const notices = state.notices.filter((n) => !n.recordId || visible.some((r) => r.id === n.recordId))
   const unread = notices.filter((n) => !n.read).length
   const pending = visible.filter((r) => r.status === 'PendingApproval')
@@ -901,6 +911,7 @@ export default function PrototypeApp() {
                   lang={lang}
                   t={t}
                   onOpen={open}
+                  selectedId={selected?.id || ''}
                 />
               </div>
             </>
@@ -1125,7 +1136,7 @@ function Brand() {
     </div>
   )
 }
-function RegisterPage({ visible, lang, t, onOpen }: PageProps) {
+function RegisterPage({ visible, lang, t, onOpen, selectedId }: PageProps) {
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
   const [department, setDepartment] = useState('all')
@@ -1191,7 +1202,7 @@ function RegisterPage({ visible, lang, t, onOpen }: PageProps) {
             {rows.length} {t('documents', 'وثائق')}
           </span>
         </div>
-        <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} />
+        <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} selectedId={selectedId} />
       </div>
     </>
   )

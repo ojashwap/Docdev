@@ -35,8 +35,9 @@ export type PageProps = {
   visible: RecordItem[]
   onOpen: (r: RecordItem) => void
   notify: (text: string) => void
+  selectedId?: string
 }
-export function Operations({ state, setState, role, lang, t, visible, onOpen, notify }: PageProps) {
+export function Operations({ state, setState, role, lang, t, visible, onOpen, notify, selectedId }: PageProps) {
   const [tab, setTab] = useState('staging')
   const [running, setRunning] = useState(false)
   const eligible = visible.filter((r) => r.status === 'Published' && !r.indexed)
@@ -129,6 +130,7 @@ export function Operations({ state, setState, role, lang, t, visible, onOpen, no
               lang={lang}
               t={t}
               onOpen={onOpen}
+              selectedId={selectedId}
             />
           </div>
           <div className="p-note">
@@ -188,6 +190,7 @@ export function Operations({ state, setState, role, lang, t, visible, onOpen, no
               lang={lang}
               t={t}
               onOpen={onOpen}
+              selectedId={selectedId}
             />
           </div>
         </>
@@ -463,7 +466,7 @@ export function CorrespondencePage({ state, setState, role, lang, t, notify }: P
   )
 }
 export function RecordsPage(props: PageProps) {
-  const { visible, lang, t, onOpen, state } = props
+  const { visible, lang, t, onOpen, state, selectedId } = props
   const [filter, setFilter] = useState('all')
   const rows = visible
     .filter((r) => ['Published', 'Archived', 'Disposed'].includes(r.status))
@@ -510,7 +513,7 @@ export function RecordsPage(props: PageProps) {
         ))}
       </div>
       <div className="p-card no-pad">
-        <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} />
+        <DocumentTable rows={rows} lang={lang} t={t} onOpen={onOpen} selectedId={selectedId} />
       </div>
       <div className="p-note">
         {t(
