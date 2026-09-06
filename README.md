@@ -16,7 +16,7 @@ Select **Enter demo workspace** and use **System Administrator** to explore all 
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Document registration      | Upload an original or choose a sample, review its preview and complete Capture, Classify and Review & submit.                  |
 | Automatic classification   | Inspect local suggestions and their rationale, override fields and explicitly confirm classification in the registration form. |
-| Approval queue             | Keep the desktop queue visible alongside a drawer with document preview, details, decisions and next-document navigation.      |
+| Approval queue             | Scan pending documents by due date, open a focused review drawer, approve or return with a reason, and continue explicitly.    |
 | Search & Ask Docaya        | Browse document thumbnails or a list, filter results, save queries and open cited records.                                     |
 | Docaya AI Assistant        | Open the floating bottom-right assistant, inspect source thumbnails and provide response feedback.                             |
 | UAE design and readability | Subtle UAE landmark decoration, warm ivory and gold, bundled Inter and Noto Sans Arabic, clearer text and responsive layouts.  |
@@ -24,9 +24,15 @@ Select **Enter demo workspace** and use **System Administrator** to explore all 
 
 ![Docaya document register with readable typography and synthetic UAE MOI records](docs/images/docaya-register.png)
 
+![Docaya approval inbox with pending documents, departments and review due dates](docs/images/docaya-approvals.png)
+
 ![Docaya approval drawer with the queue, document preview and review details visible together](docs/images/docaya-review.png)
 
-The review drawer has no blurred backdrop. On wide screens the queue remains visible while the document and its details appear side by side. On narrow screens the content stacks; closing the drawer returns to the queue.
+**Approvals** opens a full-width **To review** list containing pending documents only, with the earliest due first. Search documents or select **Overdue only**; **Returned** is a separate view for documents awaiting owner changes. Registration remains available from the document register.
+
+Opening a document changes the desktop list to a compact queue beside its preview and **Review**, **Details** and **Activity** tabs. One **Approve & sign** action and one **Return for changes** action keep the decision clear. Returning requires an explanation and **Confirm return**; **Cancel** leaves the document unchanged. Feedback explains the saved decision, and **Next pending document** stays within the filtered queue. Partial approvals require **Review the remaining step** before another decision. The app does not automatically approve or advance.
+
+The review drawer has no blurred backdrop. On narrow screens the content stacks; closing the drawer returns to the queue. The assistant is hidden while an approval drawer is open so it cannot cover the decision controls. Other document-management screens retain their existing overview, workflow, governance and activity tabs.
 
 ## Run locally
 
@@ -45,13 +51,13 @@ If port 5173 is already occupied, use another port:
 npm start -- --port 5175 --strictPort
 ```
 
-Then open **http://localhost:5175/**. Use `Ctrl+F5` if the browser shows older assets after an update. The language toggle changes English/Arabic; `Ctrl+J` on Windows or `Cmd+J` on macOS toggles the assistant while the workspace is open.
+Then open **http://localhost:5175/**. Use `Ctrl+F5` if the browser shows older assets after an update. The language toggle changes English/Arabic; `Ctrl+J` on Windows or `Cmd+J` on macOS toggles the assistant when it is available in the workspace, outside an approval or registration drawer.
 
 ## Client demo route
 
 1. **Overview and document register:** introduce Docaya, synthetic MOI records and Arabic layout.
 2. **Register document:** choose a traffic, civil defence or evidence sample; inspect classification, override a field and confirm your review.
-3. **Approvals:** review the original beside its details, approve or return with a reason, and continue through the queue.
+3. **Approvals → To review:** scan due dates, open a document, approve or confirm a return with a reason, then choose the next pending document. Use **Returned** to inspect owner feedback.
 4. **Staging & publishing → Search indexing → Run demo batch:** index published records, then demonstrate thumbnail search and the floating assistant.
 5. **Records & retention, Correspondence and Client workshop:** demonstrate governance scenarios and capture the client's expectations; export workshop notes to CSV.
 
@@ -76,7 +82,7 @@ npm test
 npm run test:e2e
 ```
 
-The prototype browser suite covers nine journeys, including classification, approval flows, search, governance, correspondence, administration and Arabic accessibility. The local configuration uses installed Chrome; CI installs Chromium. See [playwright.prototype.config.ts](playwright.prototype.config.ts).
+The prototype browser journeys cover classification, pending queue ordering and filters, approval and return decisions, search, governance, correspondence, administration and Arabic accessibility. The local configuration uses installed Chrome; CI installs Chromium. See [playwright.prototype.config.ts](playwright.prototype.config.ts).
 
 To run those browser journeys against the hosted build:
 

@@ -60,9 +60,11 @@ import {
 import { clearOriginals } from './files'
 import { SearchPage, AssistantDock } from './Discovery'
 import { ApprovalQueue } from './ApprovalQueue'
+import { approvalQueue, type ApprovalView } from './approval-queue'
 import './prototype.css'
 import './experience.css'
 import './typography.css'
+import './approval-queue.css'
 type Page =
   | 'home'
   | 'documents'
@@ -228,6 +230,9 @@ export default function PrototypeApp() {
   const [page, setPage] = useState<Page>('home')
   const [mobile, setMobile] = useState(false)
   const [selectedId, setSelectedId] = useState('')
+  const [approvalView, setApprovalView] = useState<ApprovalView>('pending')
+  const [approvalQuery, setApprovalQuery] = useState('')
+  const [approvalOverdue, setApprovalOverdue] = useState(false)
   const [registration, setRegistration] = useState<false | 'new' | RecordItem>(false)
   const [toast, setToast] = useState('')
   const [storageError, setStorageError] = useState('')
@@ -266,6 +271,12 @@ export default function PrototypeApp() {
     [state.documents, role, department],
   )
   const selected = visible.find((r) => r.id === selectedId)
+  const reviewQueue = approvalQueue(visible, approvalView, approvalQuery, approvalOverdue)
+  const resetApprovalView = () => {
+    setApprovalView('pending')
+    setApprovalQuery('')
+    setApprovalOverdue(false)
+  }
   const notify = (text: string) => setToast(text)
   const navigate = (next: Page) => {
     if ((next === 'admin' && !rights.admin) || (next === 'audit' && !rights.audit)) {
@@ -278,13 +289,17 @@ export default function PrototypeApp() {
       return
     }
     setPage(next)
+    if (next === 'workflows') resetApprovalView()
     setSelectedId('')
     setMobile(false)
     setGlobalQuery('')
     window.scrollTo(0, 0)
   }
   const open = (record: RecordItem) => {
-    if (page === 'home' && record.status === 'PendingApproval') setPage('workflows')
+    if (page === 'home' && record.status === 'PendingApproval') {
+      resetApprovalView()
+      setPage('workflows')
+    }
     setSelectedId(record.id)
     setState((s) => addEvent(s, role, 'Document viewed', 'تم عرض الوثيقة', record.id))
   }
@@ -331,6 +346,7 @@ export default function PrototypeApp() {
     )
     setRegistration(false)
     setPage(record.status === 'PendingApproval' ? 'workflows' : 'documents')
+    if (record.status === 'PendingApproval') resetApprovalView()
     notify(t(`Saved ${record.id}`, `تم حفظ ${record.id}`))
   }
   const act = (action: string, reason = '', step = '') => {
@@ -338,8 +354,10 @@ export default function PrototypeApp() {
       const next = changeRecord(state, selectedId, role, department, action, reason, step)
       setState(next)
       notify(t('Document updated. The activity trail has been recorded.', 'تم تحديث الوثيقة وتسجيل النشاط.'))
+      return true
     } catch (e) {
       notify(e instanceof Error ? e.message : String(e))
+      return false
     }
   }
   const enter = () => {
@@ -437,7 +455,9 @@ export default function PrototypeApp() {
       </div>
     )
   return (
-    <div className={`p-app ${selected && page === 'workflows' && !registration ? 'd-has-review' : ''}`}>
+    <div
+      className={`p-app ${page === 'workflows' ? 'd-approval-page' : ''} ${selected && page === 'workflows' && !registration ? 'd-has-review' : ''}`}
+    >
       <a className="skip-link" href="#prototype-main">
         {t('Skip to content', 'انتقل إلى المحتوى')}
       </a>
@@ -657,18 +677,23 @@ export default function PrototypeApp() {
                       'A clear view of your documents, decisions and what comes next.',
                       'رؤية واضحة لوثائقك وقراراتك وما يأتي بعدها.',
                     )
-                  : page === 'workshop'
+                  : page === 'workflows'
                     ? t(
-                        'Walk through the experience. Shape what comes next together.',
-                        'استعرض التجربة وشارك في تحديد الخطوات التالية.',
+                        'Review documents and make a decision, one at a time.',
+                        'راجع الوثائق واتخذ قرارك لكل وثيقة على حدة.',
                       )
-                    : t(
-                        'One connected workspace for governed information.',
-                        'مساحة عمل مترابطة للمعلومات المحكومة.',
-                      )}
+                    : page === 'workshop'
+                      ? t(
+                          'Walk through the experience. Shape what comes next together.',
+                          'استعرض التجربة وشارك في تحديد الخطوات التالية.',
+                        )
+                      : t(
+                          'One connected workspace for governed information.',
+                          'مساحة عمل مترابطة للمعلومات المحكومة.',
+                        )}
               </p>
             </div>
-            {rights.register && ['home', 'documents', 'workflows'].includes(page) && (
+            {rights.register && ['home', 'documents'].includes(page) && (
               <button className="p-btn primary" onClick={() => setRegistration('new')}>
                 <Plus size={18} />
                 {t('Register document', 'تسجيل وثيقة')}
@@ -867,7 +892,25 @@ export default function PrototypeApp() {
           )}
           {page === 'documents' && <RegisterPage {...props} />}
           {page === 'workflows' && (
-            <ApprovalQueue rows={visible} selectedId={selected?.id || ''} onOpen={open} lang={lang} t={t} />
+            <ApprovalQueue
+              rows={reviewQueue}
+              pendingCount={pending.length}
+              returnedCount={visible.filter((record) => record.status === 'Returned').length}
+              selectedId={selected?.id || ''}
+              onOpen={open}
+              lang={lang}
+              t={t}
+              query={approvalQuery}
+              onQuery={setApprovalQuery}
+              view={approvalView}
+              onView={(view) => {
+                setApprovalView(view)
+                setApprovalOverdue(false)
+                setSelectedId('')
+              }}
+              overdueOnly={approvalOverdue}
+              onOverdue={setApprovalOverdue}
+            />
           )}
           {page === 'operations' && <Operations {...props} />}
           {page === 'correspondence' && <CorrespondencePage {...props} />}
@@ -983,14 +1026,7 @@ export default function PrototypeApp() {
           t={t}
           onClose={() => setSelectedId('')}
           onAction={act}
-          queue={
-            page === 'workflows'
-              ? visible.filter(
-                  (r) =>
-                    ['PendingApproval', 'Returned', 'Approved'].includes(r.status) || r.id === selected.id,
-                )
-              : visible
-          }
+          queue={page === 'workflows' ? reviewQueue : visible}
           onSelect={open}
           reviewMode={page === 'workflows'}
           onEdit={() => {
@@ -1000,7 +1036,7 @@ export default function PrototypeApp() {
           onLog={(action, ar) => setState((s) => addEvent(s, role, action, ar, selected.id))}
         />
       )}
-      {!registration && !reset && (
+      {!registration && !reset && !(selected && page === 'workflows') && (
         <AssistantDock
           visible={visible}
           lang={lang}

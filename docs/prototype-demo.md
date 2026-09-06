@@ -18,14 +18,14 @@ This guide describes what the browser prototype actually demonstrates. Records, 
 
 ## Fifteen-minute walkthrough
 
-| Time      | Screen and action                                                             | Client discussion                                                           |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| 0–2 min   | Overview, document register and Arabic toggle                                 | Terminology, information hierarchy, departments and bilingual expectations. |
-| 2–5 min   | Register a sample; review suggestions, override a field and confirm           | Required metadata, classification rules and human responsibility.           |
-| 5–8 min   | Approvals; review in the drawer, return or approve, move to the next document | Reviewer workload, approval order, exception handling and publishing.       |
-| 8–10 min  | Run an indexing batch; browse thumbnails and ask Docaya                       | Search filters, source visibility and expected AI assistance.               |
-| 10–13 min | Records & retention, Correspondence and reports                               | Holds, retention, action tracking and reporting expectations.               |
-| 13–15 min | Client workshop; record priorities and export CSV                             | Confirm requirements, open questions and the next iteration.                |
+| Time      | Screen and action                                                            | Client discussion                                                           |
+| --------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 0–2 min   | Overview, document register and Arabic toggle                                | Terminology, information hierarchy, departments and bilingual expectations. |
+| 2–5 min   | Register a sample; review suggestions, override a field and confirm          | Required metadata, classification rules and human responsibility.           |
+| 5–8 min   | Approvals; scan pending work, review a document, approve or confirm a return | Due dates, clear decisions, remaining review steps and owner feedback.      |
+| 8–10 min  | Run an indexing batch; browse thumbnails and ask Docaya                      | Search filters, source visibility and expected AI assistance.               |
+| 10–13 min | Records & retention, Correspondence and reports                              | Holds, retention, action tracking and reporting expectations.               |
+| 13–15 min | Client workshop; record priorities and export CSV                            | Confirm requirements, open questions and the next iteration.                |
 
 ## Register and classify a document
 
@@ -42,17 +42,29 @@ The registration form requires confirmation before its submit action. The confir
 
 ## Review documents without losing the queue
 
+![Pending approval inbox with departments, due dates and a separate Returned view](images/docaya-approvals.png)
+
+Open **Approvals** to see a full-width list of documents awaiting approval. **To review** is the default; approved documents and records awaiting owner changes do not appear in it. Each row shows the document title, reference, department and actual due date, with overdue dates marked clearly. The earliest due document appears first.
+
+- Use **Search approval queue** and **Overdue only** to narrow the list. **Review next** opens the first document in that view.
+- Select **Returned** to see documents waiting for the owner to make changes. The pending and returned counts remain separate.
+- An empty pending queue shows **All caught up**. An unsuccessful search shows **No matching documents** with **Clear filters**.
+- Register new documents from **Document register**; the Approvals screen is dedicated to reviewing existing work.
+
 ![Approval queue and side-by-side document review drawer](images/docaya-review.png)
 
-On wide screens, the approval queue remains visible while a drawer shows the document beside its details. There is no blurred backdrop. On narrow screens, preview and details stack; close the drawer to return to the queue.
+Opening a document changes the wide-screen list to a compact queue beside the review drawer. The document preview stays beside its details, with no blurred backdrop. On narrow screens, preview and details stack; **Expand preview** gives the document more space while keeping decision controls available, and **Back to review** restores the details. Close the drawer to return to the queue. The floating assistant is hidden during approval review to keep the decision controls unobstructed.
 
-- Filter the queue using **All**, **Overdue** or **Returned**, or search for a record.
-- Open a document and inspect **Overview**, **Approval & publishing**, **Governance** and **Activity**.
-- Use previous/next-document controls or **Next pending document** to continue reviewing. Each document still receives an explicit decision; this is not bulk approval.
-- Select **Approve & sign**, or **Return for changes** with a mandatory explanation. Edit and resubmit a returned document to demonstrate the correction loop.
-- Demonstrate single, sequential, parallel and conditional approval patterns. Sequential flows enforce order; parallel flows allow either reviewer first. Conditional Secret records route to senior director and compliance review.
+1. Read **Review** for the owner, department and due date first, followed by a short document summary. Use **Read full summary** to expand it. The current reviewer appears beside the decision controls. **Details** contains document metadata and additional workflow information; **Activity** shows its history. The preview remains visible across all three tabs.
+2. Select the single **Approve & sign** action, or **Return for changes**. Returning opens a focused required explanation field: enter the changes the owner should make, then select **Confirm return**. **Cancel** leaves the document unchanged.
+3. Read the saved-decision feedback. A returned or fully approved record leaves **To review**, while its result remains open in the drawer. Select **Next pending document** to continue within the same searched/filtered queue, or return to the queue when no matching pending record remains. Previous/next navigation before a decision uses that same displayed order.
+4. If another approval step is needed, the item remains pending and the feedback explains that it is incomplete. Choose **Review the remaining step** to make another decision on that document. The application does not automatically approve or move to another document.
 
-Final approval transitions the document through the simulated publishing flow, preserving its original bytes and showing a version and destination. Download the unchanged original to demonstrate format preservation. To show recovery, open the seeded **Facilities inspection report** and retry publication; administrator settings can also simulate a new publication failure. The signature and destination are demonstration artifacts, not a trusted signature or a SharePoint transfer.
+Single, sequential, parallel and conditional patterns remain available. Sequential flows enforce order. Parallel flows show a **Reviewing as** selector only when more than one incomplete step is eligible, allowing either reviewer first; only the selected step is approved. Conditional Secret records route to senior director and compliance review. These are role-based demonstration steps, not real individual reviewer assignments.
+
+Optional delegation is under **Need another reviewer?**, with its own delegate-name field. It is separate from the return explanation. Open a returned document through **Document register** to edit and resubmit it. Normal document-management drawers retain **Overview**, **Approval & publishing**, **Governance** and **Activity**; the three-tab presentation applies to the approval workspace.
+
+Final approval transitions the document through the simulated publishing flow, preserving its original bytes and showing a version and destination. Download the unchanged original from **Details** to demonstrate format preservation. To show recovery, open the seeded **Facilities inspection report** in **Staging & publishing** and retry publication; administrator settings can also simulate a new publication failure. Approved documents needing a publication retry are handled there rather than in the pending approval list. The signature and destination are demonstration artifacts, not a trusted signature or a SharePoint transfer.
 
 ## Thumbnail discovery and the Docaya AI Assistant
 
@@ -70,7 +82,7 @@ Search matches registered titles, Arabic titles, document IDs, classes, summarie
 
 To retrieve the seeded civil defence or evidence handling documents, complete their approval flow and run the indexing batch first; those examples begin pending review.
 
-The bottom-right **Ask Docaya · AI Assistant** opens a companion panel with cited answers, source thumbnails, suggested questions and response feedback. Use **Explore thumbnails** to move into discovery. `Ctrl+J` on Windows or `Cmd+J` on macOS toggles the assistant while it is mounted; `Escape` or minimize closes the panel.
+The bottom-right **Ask Docaya · AI Assistant** opens a companion panel with cited answers, source thumbnails, suggested questions and response feedback. Use **Explore thumbnails** to move into discovery. `Ctrl+J` on Windows or `Cmd+J` on macOS toggles the assistant while it is mounted; `Escape` or minimize closes the panel. The assistant is unavailable while an approval or registration drawer is open; close the drawer to access it again.
 
 Answers use local deterministic retrieval from registered sample text, with links to supporting records. There is no live LLM, OCR, embedding service or external AI call. Each question is retrieved independently; chat history is not conversational model memory. Changing persona recalculates source access and removes inaccessible sources from existing answers. Chat history and response ratings are temporary component state.
 
@@ -113,23 +125,23 @@ Fonts are bundled with the application, so loading the UI does not require an ex
 
 ## M1–M15 coverage and boundaries
 
-| Module            | Interactive prototype                                                                                   | Production / future work                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| M1 Capture        | Picker/drop, samples, metadata, SHA-256, header checks, duplicate detection and drafts; 20 MB per file. | 5 GB resumable/bulk uploads, malware/DLP, scan/email capture and cloud staging.                  |
-| M2 Classification | Local suggestions, rationale, overrides and explicit confirmation in registration.                      | Per-class schema designer, advanced rules and model-based content extraction.                    |
-| M3 Workflow       | Queue and review drawer, next-pending navigation, four patterns, return/resubmit and SLA indicators.    | Real reviewer assignments, automated escalation, quorum configuration and email/Teams decisions. |
-| M4 Publishing     | Approval-driven transition, original bytes, versions, supersession, failure and retry.                  | Graph transfer, durable orchestration, SharePoint IDs/URLs and transactional idempotency.        |
-| M5 Staging        | Active/retained/purged indicators, cleanup preference and returned/failed items.                        | Actual storage cleanup and abandoned-draft scheduler; current cleanup is a state simulation.     |
-| M6 RAG            | Explicit batch, published-only index flag and permission-aware cited sample retrieval.                  | OCR, embeddings, hybrid Azure search, live generation and scheduled batches.                     |
-| M7 Notifications  | Local lifecycle alerts, read/unread, mark-all and locked security preference.                           | SignalR, email, Teams, push, quiet-hours scheduling and durable delivery.                        |
-| M8 Correspondence | Registration, references, reply thread, assignment, due dates, close/reopen and acknowledgement.        | External transport, attachment links, distribution lists and templates.                          |
-| M9 Records        | Holds/release reasons, declaration, archive, simulated disposition and due filters.                     | Event-based policies, archive tiers and actual defensible deletion.                              |
-| M10 Discovery     | Thumbnail/list views, facets, saved queries, cited assistant and English/Arabic matching.               | Hybrid ranking, date/owner facets and shared smart views.                                        |
-| M11 Identity      | Demo entry, UAE PASS simulation and integration design.                                                 | UAE PASS federation, Entra OIDC/PKCE, MFA/step-up and service identity.                          |
-| M12 Access        | Demo role/department rules, capability matrix and restricted document controls for Viewer.              | Server-enforced RBAC/ABAC, SharePoint ACLs and named groups.                                     |
-| M13 Admin         | Classes, routing root, default department, SLA, retention, cleanup and notification preferences.        | Full workflow/schema/routing designers and security policy editors.                              |
-| M14 Reports       | State-derived metrics, department filters, CSV and browser print/PDF.                                   | Historical cycle times, scheduled reports, native XLSX, Power BI and anomalies.                  |
-| M15 Audit         | Local actor/role/action/object/time/event IDs, CSV and demo signature certificate.                      | Trusted attribution, hash-chained SQL, immutable storage and legally valid signatures.           |
+| Module            | Interactive prototype                                                                                                              | Production / future work                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| M1 Capture        | Picker/drop, samples, metadata, SHA-256, header checks, duplicate detection and drafts; 20 MB per file.                            | 5 GB resumable/bulk uploads, malware/DLP, scan/email capture and cloud staging.                  |
+| M2 Classification | Local suggestions, rationale, overrides and explicit confirmation in registration.                                                 | Per-class schema designer, advanced rules and model-based content extraction.                    |
+| M3 Workflow       | Pending-only queue, due-date ordering, filtered navigation, focused decisions, required return reasons and four approval patterns. | Real reviewer assignments, automated escalation, quorum configuration and email/Teams decisions. |
+| M4 Publishing     | Approval-driven transition, original bytes, versions, supersession, failure and retry.                                             | Graph transfer, durable orchestration, SharePoint IDs/URLs and transactional idempotency.        |
+| M5 Staging        | Active/retained/purged indicators, cleanup preference and returned/failed items.                                                   | Actual storage cleanup and abandoned-draft scheduler; current cleanup is a state simulation.     |
+| M6 RAG            | Explicit batch, published-only index flag and permission-aware cited sample retrieval.                                             | OCR, embeddings, hybrid Azure search, live generation and scheduled batches.                     |
+| M7 Notifications  | Local lifecycle alerts, read/unread, mark-all and locked security preference.                                                      | SignalR, email, Teams, push, quiet-hours scheduling and durable delivery.                        |
+| M8 Correspondence | Registration, references, reply thread, assignment, due dates, close/reopen and acknowledgement.                                   | External transport, attachment links, distribution lists and templates.                          |
+| M9 Records        | Holds/release reasons, declaration, archive, simulated disposition and due filters.                                                | Event-based policies, archive tiers and actual defensible deletion.                              |
+| M10 Discovery     | Thumbnail/list views, facets, saved queries, cited assistant and English/Arabic matching.                                          | Hybrid ranking, date/owner facets and shared smart views.                                        |
+| M11 Identity      | Demo entry, UAE PASS simulation and integration design.                                                                            | UAE PASS federation, Entra OIDC/PKCE, MFA/step-up and service identity.                          |
+| M12 Access        | Demo role/department rules, capability matrix and restricted document controls for Viewer.                                         | Server-enforced RBAC/ABAC, SharePoint ACLs and named groups.                                     |
+| M13 Admin         | Classes, routing root, default department, SLA, retention, cleanup and notification preferences.                                   | Full workflow/schema/routing designers and security policy editors.                              |
+| M14 Reports       | State-derived metrics, department filters, CSV and browser print/PDF.                                                              | Historical cycle times, scheduled reports, native XLSX, Power BI and anomalies.                  |
+| M15 Audit         | Local actor/role/action/object/time/event IDs, CSV and demo signature certificate.                                                 | Trusted attribution, hash-chained SQL, immutable storage and legally valid signatures.           |
 
 ## Persistence and reset
 
@@ -150,7 +162,7 @@ Each localhost port and the hosted site is a separate origin. There is no shared
 
 `src/main.tsx` loads `src/prototype/PrototypeApp.tsx`. The current prototype has no backend dependency. See [Architecture](architecture.md) for source responsibilities, storage and the retained connected-application design.
 
-The latest UI revision passed build, lint, unit/integration checks and the nine prototype browser journeys. Manual browser review covered desktop/mobile English and Arabic screens, font loading, registration, approval review and search; automated accessibility scans found no violations in the scanned states. These are prototype checks, not a production accessibility or compliance certification. Reproducible commands are in the [README](../README.md#validate-changes).
+Validation includes build, lint, unit/integration checks and prototype browser journeys. Approval scenarios cover pending-only counts, due-date ordering, filtered navigation, required return reasons, partial parallel approvals and Arabic mobile decision controls. Manual browser review also covers desktop/mobile English and Arabic screens, font loading, registration and search, with automated accessibility scans for selected states. These are prototype checks, not a production accessibility or compliance certification. Reproducible commands are in the [README](../README.md#validate-changes).
 
 ## Publishing the client demo
 

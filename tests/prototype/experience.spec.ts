@@ -1,6 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
 import { readFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
+import type { Workspace } from '../../src/prototype/model'
 
 async function enter(page: Page) {
   await page.goto('./')
@@ -21,6 +23,9 @@ async function expectNoBlur(page: Page) {
       }),
     ),
   ).toBe(true)
+}
+async function workspace(page: Page): Promise<Workspace> {
+  return page.evaluate(() => JSON.parse(localStorage.getItem('docaya-prototype-v1')!))
 }
 
 test('automatic intake keeps overrides and original bytes, requires confirmation, and catches duplicates', async ({
@@ -82,7 +87,7 @@ test('automatic intake keeps overrides and original bytes, requires confirmation
     .click()
   const review = page.getByRole('dialog', { name: 'Reviewer final intake decision', exact: true })
   await expect(review.locator('.d-original-text pre')).toHaveText(content)
-  await review.getByRole('button', { name: 'Overview', exact: true }).click()
+  await review.getByRole('button', { name: 'Details', exact: true }).click()
   const downloadPromise = page.waitForEvent('download')
   await review.getByRole('button', { name: 'Download original / sample', exact: true }).click()
   const download = await downloadPromise
@@ -109,7 +114,8 @@ test('approval drawer keeps the queue operable and preview beside every details 
   await expect(drawer).toHaveAttribute('aria-modal', 'false')
   await expect(first).toHaveAttribute('aria-current', 'true')
   await expectNoBlur(page)
-  for (const name of ['Overview', 'Approval & publishing', 'Governance', 'Activity']) {
+  await expect(drawer.locator('.d-review-tabs button')).toHaveCount(3)
+  for (const name of ['Review', 'Details', 'Activity']) {
     await drawer.getByRole('button', { name, exact: true }).click()
     await expect(drawer.locator('.d-review-preview')).toBeVisible()
     await expect(drawer.locator('.d-document-paper h3')).toHaveText('Civil Defence readiness review')
@@ -123,7 +129,7 @@ test('approval drawer keeps the queue operable and preview beside every details 
   await expect(
     queue.getByRole('button', { name: /Evidence custody documentation procedure/ }),
   ).toHaveAttribute('aria-current', 'true')
-  await drawer.getByRole('button', { name: 'Next pending document', exact: true }).click()
+  await drawer.getByRole('button', { name: 'Next document', exact: true }).click()
   await expect(page.locator('.d-review-drawer')).toBeVisible()
   await expect(page.locator('.d-review-drawer')).not.toHaveAttribute(
     'aria-label',
@@ -132,6 +138,173 @@ test('approval drawer keeps the queue operable and preview beside every details 
   await expect(page.locator('.d-review-preview')).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.locator('.d-review-drawer')).toHaveCount(0)
+  await expect(queue).toBeVisible()
+})
+
+test('approval inbox shows pending work by due date, preserves filtered navigation and separates returns', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 1000 })
+  await enter(page)
+  await navigate(page, 'Approvals')
+  const initial = await workspace(page)
+  const pending = initial.documents.filter((record) => record.status === 'PendingApproval')
+  const returnedCount = initial.documents.filter((record) => record.status === 'Returned').length
+  const queue = page.locator('.d-queue-list')
+  const rows = queue.getByRole('button')
+  const views = page.getByRole('group', { name: 'Queue view', exact: true })
+  await expect(
+    views.getByRole('button', { name: `To review ${pending.length}`, exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect(rows).toHaveCount(pending.length)
+  await expect(
+    page.getByRole('heading', { name: `${pending.length} documents to review`, exact: true }),
+  ).toBeVisible()
+  const ids = await rows.locator('.d-inbox-document small').allTextContents()
+  expect(new Set(ids)).toEqual(new Set(pending.map((record) => record.id)))
+  const dueDates = ids.map((id) => Date.parse(pending.find((record) => record.id === id)!.due))
+  expect(dueDates).toEqual([...dueDates].sort((a, b) => a - b))
+  await expect(page.getByText('Earliest due first', { exact: true })).toBeVisible()
+
+  const search = page.getByRole('textbox', { name: 'Search approval queue', exact: true })
+  await search.fill('service')
+  const matches = pending.filter((record) =>
+    `${record.title} ${record.titleAr} ${record.id} ${record.department}`.toLowerCase().includes('service'),
+  )
+  expect(matches.length).toBeGreaterThan(1)
+  await expect(rows).toHaveCount(matches.length)
+  const matchingIds = await rows.locator('.d-inbox-document small').allTextContents()
+  await rows.first().click()
+  let drawer = page.locator('.d-review-drawer')
+  await expect(drawer.locator('.d-review-navigation')).toContainText(`1 / ${matches.length}`)
+  await drawer.getByRole('button', { name: 'Next document', exact: true }).click()
+  await expect(drawer.locator('.d-review-meta')).toContainText(matchingIds[1])
+  await expect(rows.nth(1)).toHaveAttribute('aria-current', 'true')
+  await drawer.getByRole('button', { name: 'Close review drawer', exact: true }).click()
+  await expect(search).toHaveValue('service')
+  await search.fill('no-document-can-match-this-query')
+  await expect(queue.getByRole('heading', { name: 'No matching documents', exact: true })).toBeVisible()
+  await queue.getByRole('button', { name: 'Clear filters', exact: true }).click()
+  await expect(rows).toHaveCount(pending.length)
+
+  const returnedId = await rows.first().locator('.d-inbox-document small').innerText()
+  await rows.first().click()
+  drawer = page.locator('.d-review-drawer')
+  await drawer.getByRole('button', { name: 'Return for changes', exact: true }).click()
+  const reason = drawer.getByRole('textbox', { name: 'What needs to change? (required)', exact: true })
+  await expect(reason).toBeFocused()
+  await drawer.getByRole('button', { name: 'Confirm return', exact: true }).click()
+  await expect(drawer.getByRole('alert')).toHaveText(
+    'Explain what needs to change before returning the document.',
+  )
+  await expect(reason).toBeFocused()
+  expect((await workspace(page)).documents.find((record) => record.id === returnedId)?.status).toBe(
+    'PendingApproval',
+  )
+  await reason.fill('Please clarify the accountable owner and review deadline.')
+  await drawer.getByRole('button', { name: 'Confirm return', exact: true }).click()
+  await expect(drawer.getByRole('status')).toContainText('Returned for changes')
+  await expect(drawer.getByRole('button', { name: 'Approve & sign', exact: true })).toHaveCount(0)
+  await expect(rows.filter({ hasText: returnedId })).toHaveCount(0)
+  await expect(rows).toHaveCount(pending.length - 1)
+  await drawer.getByRole('button', { name: 'Close review drawer', exact: true }).click()
+  await views.getByRole('button', { name: `Returned ${returnedCount + 1}`, exact: true }).click()
+  await expect(rows).toHaveCount(returnedCount + 1)
+  await rows.filter({ hasText: returnedId }).click()
+  await expect(
+    drawer.getByText('Please clarify the accountable owner and review deadline.', { exact: true }),
+  ).toBeVisible()
+  await expect(drawer.getByRole('button', { name: 'Approve & sign', exact: true })).toHaveCount(0)
+})
+
+test('parallel approval saves one selected step and requires explicit continuation before the remaining decision', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 1000 })
+  await enter(page)
+  await navigate(page, 'Approvals')
+  const initial = await workspace(page)
+  const parallel = initial.documents.find(
+    (record) => record.status === 'PendingApproval' && record.flow === 'Parallel' && !record.approvals.length,
+  )!
+  expect(parallel).toBeTruthy()
+  const queue = page.locator('.d-queue-list')
+  const row = queue.getByRole('button').filter({ hasText: parallel.id })
+  const count = await queue.getByRole('button').count()
+  await row.click()
+  const drawer = page.getByRole('dialog', { name: parallel.title, exact: true })
+  const reviewingAs = drawer.getByRole('combobox', { name: 'Reviewing as', exact: true })
+  await reviewingAs.selectOption('Compliance officer')
+  await expect(drawer.getByRole('button', { name: 'Approve & sign', exact: true })).toHaveCount(1)
+  await drawer.getByRole('button', { name: 'Approve & sign', exact: true }).click()
+  await expect(drawer.getByRole('status')).toContainText('Another review step is still required.')
+  await expect(drawer.getByRole('status')).toBeFocused()
+  await expect(row).toHaveAttribute('aria-current', 'true')
+  await expect(queue.getByRole('button')).toHaveCount(count)
+  await expect(drawer.getByRole('button', { name: 'Approve & sign', exact: true })).toHaveCount(0)
+  const partial = (await workspace(page)).documents.find((record) => record.id === parallel.id)!
+  expect(partial.status).toBe('PendingApproval')
+  expect(partial.approvals).toEqual(['Compliance officer'])
+  await drawer.getByRole('button', { name: 'Review the remaining step', exact: true }).click()
+  await expect(drawer.locator('.d-decision-as')).toContainText('Department head')
+  await drawer.getByRole('button', { name: 'Approve & sign', exact: true }).click()
+  await expect(drawer.getByRole('status')).toContainText(
+    'All review steps are complete. The document is published.',
+  )
+  await expect(row).toHaveCount(0)
+  await expect(queue.getByRole('button')).toHaveCount(count - 1)
+  await expect(drawer.getByRole('button', { name: 'Review the remaining step', exact: true })).toHaveCount(0)
+  await drawer.getByRole('button', { name: 'Next pending document', exact: true }).click()
+  await expect(page.locator('.d-review-drawer')).not.toHaveAttribute('aria-label', parallel.title)
+  await expect(
+    page.locator('.d-review-drawer').getByRole('button', { name: 'Approve & sign', exact: true }),
+  ).toBeVisible()
+})
+
+test('Arabic mobile approval controls are accessible, visible and require a focused return reason', async ({
+  page,
+}) => {
+  await enter(page)
+  await navigate(page, 'Approvals')
+  await page.getByRole('button', { name: 'العربية', exact: true }).click()
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  const queue = page.locator('.d-queue-list')
+  const first = queue.getByRole('button').first()
+  await first.click()
+  const drawer = page.locator('.d-review-drawer')
+  await expect(drawer).toHaveAttribute('aria-modal', 'false')
+  await expectNoBlur(page)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  const approve = drawer.getByRole('button', { name: 'اعتماد وتوقيع', exact: true })
+  const returnDocument = drawer.getByRole('button', { name: 'إرجاع للتعديل', exact: true })
+  await expect(approve).toBeInViewport({ ratio: 1 })
+  await expect(returnDocument).toBeInViewport({ ratio: 1 })
+  await approve.click({ trial: true })
+  const previewHeight = (await drawer.locator('.d-review-preview').boundingBox())!.height
+  await drawer.getByRole('button', { name: 'توسيع المعاينة', exact: true }).click()
+  expect((await drawer.locator('.d-review-preview').boundingBox())!.height).toBeGreaterThan(previewHeight)
+  await expect(approve).toBeInViewport({ ratio: 1 })
+  await expect(returnDocument).toBeInViewport({ ratio: 1 })
+  await drawer.getByRole('button', { name: 'العودة إلى المراجعة', exact: true }).click()
+  const accessibility = await new AxeBuilder({ page })
+    .include('.d-review-drawer')
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+    .analyze()
+  expect(accessibility.violations).toEqual([])
+  await returnDocument.click()
+  const reason = drawer.getByRole('textbox', { name: 'ما التعديلات المطلوبة؟ (إلزامي)', exact: true })
+  await expect(reason).toBeFocused()
+  await expect(reason).toBeInViewport({ ratio: 1 })
+  const confirm = drawer.getByRole('button', { name: 'تأكيد الإرجاع', exact: true })
+  await expect(confirm).toBeInViewport({ ratio: 1 })
+  await confirm.click()
+  await expect(drawer.getByRole('alert')).toHaveText('وضح التعديلات المطلوبة قبل إرجاع الوثيقة.')
+  await expect(reason).toBeFocused()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await drawer.getByRole('button', { name: 'إلغاء', exact: true }).click()
+  await drawer.getByRole('button', { name: 'إغلاق درج المراجعة', exact: true }).click()
+  await expect(first).toBeFocused()
   await expect(queue).toBeVisible()
 })
 

@@ -1,146 +1,197 @@
-import { useState } from 'react'
-import { ArrowRight, CheckCheck, Clock3, FileText, Search, Workflow } from 'lucide-react'
+import { ArrowRight, CheckCheck, FileText, Search, X } from 'lucide-react'
 import type { Language, RecordItem } from './model'
-import { Badge, Empty, type Translate } from './ui'
+import type { ApprovalView } from './approval-queue'
+import type { Translate } from './ui'
 import { local } from './translations'
 
 export function ApprovalQueue({
   rows,
+  pendingCount,
+  returnedCount,
   selectedId,
   onOpen,
   lang,
   t,
+  query,
+  onQuery,
+  view,
+  onView,
+  overdueOnly,
+  onOverdue,
 }: {
   rows: RecordItem[]
+  pendingCount: number
+  returnedCount: number
   selectedId: string
   onOpen: (record: RecordItem) => void
   lang: Language
   t: Translate
+  query: string
+  onQuery: (query: string) => void
+  view: ApprovalView
+  onView: (view: ApprovalView) => void
+  overdueOnly: boolean
+  onOverdue: (value: boolean) => void
 }) {
-  const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState('all')
-  const pending = rows.filter((r) => r.status === 'PendingApproval')
-  const relevant = rows.filter(
-    (r) => ['PendingApproval', 'Returned', 'Approved'].includes(r.status) || r.id === selectedId,
-  )
-  const filtered = relevant.filter(
-    (r) =>
-      (filter === 'all' ||
-        (filter === 'overdue'
-          ? r.status === 'PendingApproval' && new Date(r.due).getTime() < Date.now()
-          : r.status === filter)) &&
-      `${r.title} ${r.titleAr} ${r.id} ${r.department}`.toLowerCase().includes(query.toLowerCase()),
-  )
+  const filtered = !!query.trim() || overdueOnly
+  const dateLabel = (record: RecordItem) => {
+    const due = Date.parse(record.due)
+    if (!Number.isFinite(due)) return t('No due date', 'دون موعد محدد')
+    const date = new Date(due).toLocaleDateString(lang === 'ar' ? 'ar-AE' : 'en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    return `${view === 'pending' && due < Date.now() ? t('Overdue', 'متأخر') : t('Due', 'الموعد')} · ${date}`
+  }
   return (
     <section
-      className={`d-approval-workspace ${selectedId ? 'reviewing' : ''}`}
+      className={`d-approval-workspace d-simple-queue ${selectedId ? 'reviewing' : ''}`}
       aria-label={t('Approval workspace', 'مساحة الاعتماد')}
     >
       <div className="d-queue-panel">
-        <header>
-          <span className="d-queue-heading-icon">
-            <Workflow size={19} />
-          </span>
+        <header className="d-inbox-heading">
           <div>
-            <h2>{t('Your review queue', 'قائمة مراجعتك')}</h2>
-            <small>
-              {pending.length} {t('awaiting a decision', 'بانتظار القرار')}
-            </small>
+            <h2>
+              {view === 'pending'
+                ? t(`${pendingCount} documents to review`, `${pendingCount} وثائق للمراجعة`)
+                : t(`${returnedCount} returned for changes`, `${returnedCount} وثائق معادة للتعديل`)}
+            </h2>
+            <p>
+              {view === 'pending'
+                ? t(
+                    'Open a document, review it, then make your decision.',
+                    'افتح الوثيقة وراجعها ثم اتخذ قرارك.',
+                  )
+                : t('Waiting for the document owner to make changes.', 'بانتظار تعديل الوثيقة من مالكها.')}
+            </p>
           </div>
-          <span className="p-count">{pending.length}</span>
-        </header>
-        <div className="d-queue-search">
-          <Search size={15} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label={t('Search approval queue', 'بحث قائمة الاعتماد')}
-            placeholder={t('Find a document…', 'ابحث عن وثيقة…')}
-          />
-        </div>
-        <div className="d-queue-filters">
-          {[
-            ['all', 'All', 'الكل'],
-            ['overdue', 'Overdue', 'متأخر'],
-            ['Returned', 'Returned', 'معاد'],
-          ].map(([id, en, ar]) => (
-            <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>
-              {t(en, ar)}
+          {view === 'pending' && rows[0] && (
+            <button className="p-btn primary" onClick={() => onOpen(rows[0])}>
+              {t('Review next', 'مراجعة التالية')}
+              <ArrowRight size={16} />
             </button>
-          ))}
+          )}
+        </header>
+        <div className="d-inbox-toolbar">
+          <div className="d-queue-filters" role="group" aria-label={t('Queue view', 'عرض القائمة')}>
+            <button aria-pressed={view === 'pending'} onClick={() => onView('pending')}>
+              {t('To review', 'للمراجعة')} <span>{pendingCount}</span>
+            </button>
+            <button aria-pressed={view === 'returned'} onClick={() => onView('returned')}>
+              {t('Returned', 'معادة')} <span>{returnedCount}</span>
+            </button>
+          </div>
+          <div className="d-queue-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              value={query}
+              onChange={(event) => onQuery(event.target.value)}
+              aria-label={t('Search approval queue', 'بحث قائمة الاعتماد')}
+              placeholder={t('Search documents…', 'ابحث عن وثيقة…')}
+            />
+            {query && (
+              <button
+                className="p-icon"
+                aria-label={t('Clear queue search', 'مسح بحث القائمة')}
+                onClick={() => onQuery('')}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
         </div>
-        <div className="d-queue-list">
-          {filtered.map((record) => (
+        <div className="d-inbox-order">
+          <span>
+            {view === 'pending'
+              ? t('Earliest due first', 'الأقرب موعداً أولاً')
+              : t('Awaiting changes', 'بانتظار التعديل')}
+          </span>
+          {view === 'pending' && (
+            <label>
+              <input
+                type="checkbox"
+                checked={overdueOnly}
+                onChange={(event) => onOverdue(event.target.checked)}
+              />
+              {t('Overdue only', 'المتأخرة فقط')}
+            </label>
+          )}
+        </div>
+        <div className="d-inbox-columns" aria-hidden="true">
+          <span>{t('Document', 'الوثيقة')}</span>
+          <span>{t('Department', 'الإدارة')}</span>
+          <span>{view === 'pending' ? t('Review due', 'موعد المراجعة') : t('Status', 'الحالة')}</span>
+          <span />
+        </div>
+        <div className="d-queue-list" aria-label={t('Documents in this queue', 'وثائق هذه القائمة')}>
+          {rows.map((record) => (
             <button
-              className={`d-review-item ${selectedId === record.id ? 'selected' : ''}`}
+              className={`d-review-item d-inbox-row ${selectedId === record.id ? 'selected' : ''}`}
               aria-current={selectedId === record.id ? 'true' : undefined}
               key={record.id}
               onClick={() => onOpen(record)}
             >
-              <div className="d-review-item-top">
-                <span className="p-file">
-                  <FileText size={17} />
-                  <small>{record.fileName.split('.').at(-1)}</small>
+              <span className="d-inbox-document">
+                <span className="d-inbox-file">
+                  <FileText size={20} aria-hidden="true" />
                 </span>
                 <span>
                   <strong>{lang === 'ar' ? record.titleAr || record.title : record.title}</strong>
-                  <small>{record.id}</small>
+                  <small dir="ltr">{record.id}</small>
                 </span>
-                <ArrowRight size={14} />
-              </div>
-              <div className="d-review-item-meta">
-                <span>{local(record.department, lang)}</span>
-                <Badge value={record.status} lang={lang} />
-              </div>
-              <div className="d-review-item-bottom">
-                <span>
-                  <Clock3 size={12} />
-                  {record.status === 'PendingApproval' && new Date(record.due).getTime() < Date.now()
-                    ? t('Overdue', 'متأخر')
-                    : local(record.flow, lang)}
-                </span>
-                <span>
-                  {record.approvals.length} {t('steps completed', 'خطوات مكتملة')}
-                </span>
-              </div>
+              </span>
+              <span className="d-inbox-department">{local(record.department, lang)}</span>
+              <span
+                className={`d-inbox-due ${view === 'pending' && Date.parse(record.due) < Date.now() ? 'overdue' : ''}`}
+              >
+                {view === 'pending' ? dateLabel(record) : t('Awaiting changes', 'بانتظار التعديل')}
+              </span>
+              <span className="d-inbox-open">
+                {selectedId === record.id
+                  ? t('Reviewing', 'قيد المراجعة')
+                  : view === 'pending'
+                    ? t('Review', 'مراجعة')
+                    : t('View', 'عرض')}
+                <ArrowRight size={16} aria-hidden="true" />
+              </span>
             </button>
           ))}
-          {!filtered.length && <Empty t={t} />}
-        </div>
-        <footer>
-          <CheckCheck size={15} />
-          {t('Every decision leaves a trace.', 'كل قرار موثق.')}
-        </footer>
-      </div>
-      {!selectedId && (
-        <div className="d-review-welcome">
-          <div className="d-review-illustration">
-            <FileText size={60} />
-            <span>
-              <CheckCheck size={21} />
-            </span>
-          </div>
-          <p className="p-eyebrow">{t('A CALMER WAY TO REVIEW', 'طريقة أهدأ للمراجعة')}</p>
-          <h2>{t('The document. The context. The decision.', 'الوثيقة. السياق. القرار.')}</h2>
-          <p>
-            {t(
-              'Select a document to see its preview beside the details. Your queue stays in view as you approve, return or move to the next item.',
-              'اختر وثيقة لمعاينتها بجانب تفاصيلها. تبقى قائمتك ظاهرة أثناء الاعتماد أو الإرجاع أو الانتقال للوثيقة التالية.',
-            )}
-          </p>
-          {pending[0] && (
-            <button className="p-btn primary" onClick={() => onOpen(pending[0])}>
-              {t('Start reviewing', 'ابدأ المراجعة')}
-              <ArrowRight size={16} />
-            </button>
+          {!rows.length && (
+            <div className="d-inbox-empty" role="status">
+              {filtered ? <Search size={28} /> : <CheckCheck size={30} />}
+              <h3>
+                {filtered
+                  ? t('No matching documents', 'لا توجد وثائق مطابقة')
+                  : view === 'pending'
+                    ? t('All caught up', 'اكتملت جميع المراجعات')
+                    : t('No returned documents', 'لا توجد وثائق معادة')}
+              </h3>
+              <p>
+                {filtered
+                  ? t('Try another search or clear your filters.', 'جرّب بحثاً آخر أو امسح المرشحات.')
+                  : view === 'pending'
+                    ? t('There are no documents awaiting approval.', 'لا توجد وثائق بانتظار الاعتماد.')
+                    : t(
+                        'Documents returned for changes will appear here.',
+                        'ستظهر هنا الوثائق المعادة للتعديل.',
+                      )}
+              </p>
+              {filtered && (
+                <button
+                  className="p-btn"
+                  onClick={() => {
+                    onQuery('')
+                    onOverdue(false)
+                  }}
+                >
+                  {t('Clear filters', 'مسح المرشحات')}
+                </button>
+              )}
+            </div>
           )}
-          <div className="d-review-benefits">
-            <span>{t('Side-by-side preview', 'معاينة جنباً إلى جنب')}</span>
-            <span>{t('No blurred background', 'خلفية واضحة')}</span>
-            <span>{t('One continuous queue', 'قائمة مستمرة')}</span>
-          </div>
         </div>
-      )}
+      </div>
     </section>
   )
 }

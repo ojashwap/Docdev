@@ -24,18 +24,19 @@ The default entry point does not load the earlier `src/App.tsx` application or d
 
 Paths below are relative to `src/prototype/`, except the repository-level test paths.
 
-| Source                                                   | Responsibility                                                                                    |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `PrototypeApp.tsx`                                       | Demo entry, navigation, persona, language, workspace state, overview, notifications and workshop. |
-| `model.ts`                                               | Seed records, capabilities, lifecycle transitions, governance, migration and export helpers.      |
-| `Registration.tsx`, `classification.ts`                  | Capture flow, local suggestions, field overrides and review confirmation.                         |
-| `ApprovalQueue.tsx`, `RecordDetail.tsx`                  | Queue navigation, review drawer, workflow decisions, publishing, downloads and record actions.    |
-| `DocumentPreview.tsx`, `files.ts`                        | Preview selection, original-file persistence and integrity checks.                                |
-| `Discovery.tsx`, `knowledge-search.ts`                   | Discovery, facets, cited retrieval and assistant behavior.                                        |
-| `Management.tsx`                                         | Staging/indexing, correspondence, records, administration, reporting and audit.                   |
-| `translations.ts`, `ui.tsx`                              | Bilingual strings and shared interface components.                                                |
-| `typography.css`                                         | Shared bilingual typography, readable UI sizes and responsive adjustments.                        |
-| `tests/prototype/`, `tests/unit/prototype-model.test.ts` | Repository-level browser journeys and prototype model checks.                                     |
+| Source                                                         | Responsibility                                                                                                      |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `PrototypeApp.tsx`                                             | Demo entry, navigation, persona, language, workspace state, overview, notifications and workshop.                   |
+| `model.ts`                                                     | Seed records, capabilities, lifecycle transitions, governance, migration and export helpers.                        |
+| `Registration.tsx`, `classification.ts`                        | Capture flow, local suggestions, field overrides and review confirmation.                                           |
+| `ApprovalQueue.tsx`, `approval-queue.ts`, `approval-queue.css` | Pending and returned views, shared filtering/due ordering, full-width inbox and compact review rail.                |
+| `RecordDetail.tsx`, `review-drawer.css`                        | Focused approval decisions and feedback, document previews/details, downloads and normal record-management actions. |
+| `DocumentPreview.tsx`, `files.ts`                              | Preview selection, original-file persistence and integrity checks.                                                  |
+| `Discovery.tsx`, `knowledge-search.ts`                         | Discovery, facets, cited retrieval and assistant behavior.                                                          |
+| `Management.tsx`                                               | Staging/indexing, correspondence, records, administration, reporting and audit.                                     |
+| `translations.ts`, `ui.tsx`                                    | Bilingual strings and shared interface components.                                                                  |
+| `typography.css`                                               | Shared bilingual typography, readable UI sizes and responsive adjustments.                                          |
+| `tests/prototype/`, `tests/unit/prototype-model.test.ts`       | Repository-level browser journeys and prototype model checks.                                                       |
 
 ## Browser storage
 
@@ -45,6 +46,16 @@ Paths below are relative to `src/prototype/`, except the repository-level test p
 - **Reset:** restores seeded workspace data and removes this prototype's saved originals and workshop notes. Export notes before resetting.
 
 Each browser/origin is independent. GitHub Pages, localhost and different localhost ports do not share data. Storage can be lost through site-data clearing or browser eviction. This is not shared storage or a collaboration backend, and browser data is not included in the static build or a Git push.
+
+## Approval workspace
+
+`PrototypeApp.tsx` owns the approval view, search query and overdue filter. The `approval-queue.ts` helper filters accessible records to PendingApproval for **To review**, or Returned for the separate **Returned** view, then orders them by earliest due date. Invalid or missing dates sort last, and document ID breaks date ties. The same result supplies the inbox, compact rail and drawer navigation, so a next-document action stays within the displayed filter and order.
+
+`ApprovalQueue.tsx` presents a full-width list before selection and a compact desktop rail during review. It shows actual due dates, overdue labels and separate pending/returned totals, with distinct empty-queue and no-matches states. Registration controls remain outside Approvals; approved records needing a publishing retry are handled in **Staging & publishing**.
+
+In review mode, `RecordDetail.tsx` presents **Review**, **Details** and **Activity**, with a persistent preview and a focused decision area. One **Approve & sign** action approves the selected eligible step; a **Reviewing as** selector appears only when multiple parallel steps are eligible. **Return for changes** opens a required explanation and explicit **Confirm return** / **Cancel** controls. Optional delegation has a separate field. Model transitions continue to enforce approval order, permissions and return reasons.
+
+After a decision, feedback keeps the document open. Partial approvals remain in the pending list and require **Review the remaining step** before another decision. Completed or returned records leave the pending list without being reinserted as selected items. **Next pending document** uses the same filtered queue; neither approval nor advancement is automatic. Normal record-management drawers retain their original overview, workflow, governance and activity sections. The assistant is unmounted while an approval drawer is open to keep the decision controls clear.
 
 ## Classification, retrieval and access
 

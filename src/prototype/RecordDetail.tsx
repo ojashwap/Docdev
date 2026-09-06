@@ -34,26 +34,46 @@ export function RecordDetail({
   lang: Language
   t: Translate
   onClose: () => void
-  onAction: (action: string, reason?: string, step?: string) => void
+  onAction: (action: string, reason?: string, step?: string) => boolean | void
   onEdit: () => void
   onLog: (action: string, ar: string) => void
   queue?: RecordItem[]
   onSelect?: (record: RecordItem) => void
   reviewMode?: boolean
 }) {
-  const [tab, setTab] = useState(reviewMode ? 'workflow' : 'overview')
+  const [tab, setTab] = useState(reviewMode ? 'review' : 'overview')
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
+  const [returning, setReturning] = useState(false)
+  const [delegateName, setDelegateName] = useState('')
+  const [delegateError, setDelegateError] = useState('')
+  const [selectedStep, setSelectedStep] = useState('')
+  const [summaryExpanded, setSummaryExpanded] = useState(false)
+  const [previewExpanded, setPreviewExpanded] = useState(false)
+  const [decision, setDecision] = useState<{ action: string; step: string; name: string } | null>(null)
   const [confirmDispose, setConfirmDispose] = useState(false)
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const decisionRef = useRef<HTMLDivElement>(null)
+  const returnReasonRef = useRef<HTMLTextAreaElement>(null)
+  const delegateRef = useRef<HTMLInputElement>(null)
   const initialFocus = useRef<HTMLElement | null>(null)
   useEffect(() => {
     initialFocus.current = document.activeElement as HTMLElement | null
     headingRef.current?.focus({ preventScroll: true })
     return () => {
       if (initialFocus.current?.isConnected) initialFocus.current.focus({ preventScroll: true })
+      else if (reviewMode) {
+        const queueFocus =
+          document.querySelector<HTMLElement>(
+            '.d-simple-queue .d-queue-filters button[aria-pressed="true"]',
+          ) || document.querySelector<HTMLElement>('.d-simple-queue')
+        if (queueFocus) {
+          if (!queueFocus.matches('button')) queueFocus.tabIndex = -1
+          queueFocus.focus({ preventScroll: true })
+        }
+      }
     }
-  }, [])
+  }, [reviewMode])
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !event.defaultPrevented) {
@@ -67,10 +87,30 @@ export function RecordDetail({
   useEffect(() => {
     setReason('')
     setError('')
+    setReturning(false)
+    setDelegateName('')
+    setDelegateError('')
+    setSelectedStep('')
+    setSummaryExpanded(false)
+    setPreviewExpanded(false)
+    setDecision(null)
+    setTab(reviewMode ? 'review' : 'overview')
     setConfirmDispose(false)
-  }, [record.id])
+    headingRef.current?.focus({ preventScroll: true })
+  }, [record.id, reviewMode])
+  useEffect(() => {
+    if (returning) returnReasonRef.current?.focus()
+  }, [returning])
+  useEffect(() => {
+    if (decision) decisionRef.current?.focus({ preventScroll: true })
+  }, [decision])
   const rights = capabilities(role)
   const steps = approvalSteps(record)
+  const remainingSteps = steps.filter((step) => !record.approvals.includes(step))
+  const eligibleSteps = record.flow === 'Parallel' ? remainingSteps : remainingSteps.slice(0, 1)
+  const currentStep = eligibleSteps.includes(selectedStep) ? selectedStep : eligibleSteps[0] || ''
+  const canDecide = record.status === 'PendingApproval' && rights.approve && !!currentStep
+  const WorkflowDetails = reviewMode ? 'details' : 'div'
   const title = lang === 'ar' ? record.titleAr || record.title : record.title
   const ordered = queue || [record]
   const position = ordered.findIndex((item) => item.id === record.id)
@@ -87,6 +127,37 @@ export function RecordDetail({
     }
     setError('')
     onAction(action, reason, step)
+  }
+  const reviewAction = (action: 'approve' | 'return' | 'delegate') => {
+    const value = action === 'delegate' ? delegateName.trim() : reason.trim()
+    if (action === 'return' && !value) {
+      setError(
+        t(
+          'Explain what needs to change before returning the document.',
+          'وضح التعديلات المطلوبة قبل إرجاع الوثيقة.',
+        ),
+      )
+      returnReasonRef.current?.focus()
+      return
+    }
+    if (action === 'delegate' && !value) {
+      setDelegateError(
+        t('Enter the name of the reviewer to delegate to.', 'أدخل اسم المراجع الذي تريد تفويضه.'),
+      )
+      delegateRef.current?.focus()
+      return
+    }
+    setError('')
+    setDelegateError('')
+    if (onAction(action, action === 'approve' ? '' : value, currentStep) === false) {
+      setError(
+        t('The decision could not be saved. Please try again.', 'تعذر حفظ القرار. يرجى المحاولة مرة أخرى.'),
+      )
+      return
+    }
+    setDecision({ action, step: currentStep, name: value })
+    setReturning(false)
+    setTab('review')
   }
   const download = async () => {
     try {
@@ -117,14 +188,17 @@ export function RecordDetail({
     }
   }
   return (
-    <section className="d-review-drawer" role="dialog" aria-modal="false" aria-label={title}>
+    <section
+      className={`d-review-drawer${reviewMode ? ' is-approver' : ''}${previewExpanded ? ' is-preview-expanded' : ''}`}
+      role="dialog"
+      aria-modal="false"
+      aria-label={title}
+    >
       <header className="d-review-header">
         <div className="d-review-heading">
           <div>
             <p className="p-eyebrow">
-              {reviewMode
-                ? t('Review workspace', 'مساحة المراجعة')
-                : t('Document workspace', 'مساحة الوثيقة')}
+              {reviewMode ? t('Review document', 'مراجعة الوثيقة') : t('Document workspace', 'مساحة الوثيقة')}
             </p>
             <h2 ref={headingRef} tabIndex={-1}>
               {title}
@@ -151,12 +225,14 @@ export function RecordDetail({
           <span>{record.version ? `v${record.version}.0` : t('Unpublished', 'غير منشور')}</span>
         </div>
       </header>
-      {onSelect && ordered.length > 0 && (
+      {onSelect && ordered.length > 0 && !(reviewMode && decision) && (
         <div className="d-review-navigation">
           <span>
             {position >= 0
               ? `${position + 1} / ${ordered.length} · ${t('in your view', 'في العرض الحالي')}`
-              : t('Review completed · queue updated', 'اكتملت المراجعة · تم تحديث القائمة')}
+              : record.status === 'PendingApproval'
+                ? t('Outside the current filter', 'خارج المرشح الحالي')
+                : t('Review completed · queue updated', 'اكتملت المراجعة · تم تحديث القائمة')}
           </span>
           <div>
             <button className="p-btn" disabled={!previous} onClick={() => previous && onSelect(previous)}>
@@ -170,18 +246,39 @@ export function RecordDetail({
           </div>
         </div>
       )}
+      {reviewMode && (
+        <div className="d-review-mobile-tools">
+          <button
+            className="p-link"
+            aria-expanded={previewExpanded}
+            aria-controls="d-review-document-preview"
+            onClick={() => setPreviewExpanded((expanded) => !expanded)}
+          >
+            {previewExpanded
+              ? t('Back to review', 'العودة إلى المراجعة')
+              : t('Expand preview', 'توسيع المعاينة')}
+          </button>
+        </div>
+      )}
       <div className="d-review-workspace">
-        <div className="d-review-preview">
+        <div className="d-review-preview" id="d-review-document-preview">
           <DocumentPreview record={record} lang={lang} records={state.documents} />
         </div>
         <div className="d-review-inspector">
           <div className="d-review-tabs" role="group" aria-label={t('Document details', 'تفاصيل الوثيقة')}>
-            {[
-              ['overview', 'Overview', 'نظرة عامة'],
-              ['workflow', 'Approval & publishing', 'الاعتماد والنشر'],
-              ['governance', 'Governance', 'الحوكمة'],
-              ['history', 'Activity', 'النشاط'],
-            ].map(([id, en, ar]) => (
+            {(reviewMode
+              ? [
+                  ['review', 'Review', 'المراجعة'],
+                  ['details', 'Details', 'التفاصيل'],
+                  ['history', 'Activity', 'النشاط'],
+                ]
+              : [
+                  ['overview', 'Overview', 'نظرة عامة'],
+                  ['workflow', 'Approval & publishing', 'الاعتماد والنشر'],
+                  ['governance', 'Governance', 'الحوكمة'],
+                  ['history', 'Activity', 'النشاط'],
+                ]
+            ).map(([id, en, ar]) => (
               <button
                 aria-pressed={tab === id}
                 aria-controls="d-review-panel"
@@ -200,7 +297,98 @@ export function RecordDetail({
             role="region"
             aria-labelledby={`d-review-tab-${tab}`}
           >
-            {tab === 'overview' && (
+            {tab === 'review' && reviewMode && (
+              <>
+                <dl className="d-approver-facts">
+                  <div>
+                    <dt>{t('Submitted by', 'مقدم الوثيقة')}</dt>
+                    <dd>{record.owner}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('Department', 'الإدارة')}</dt>
+                    <dd>{local(record.department, lang)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('Decision due', 'موعد القرار')}</dt>
+                    <dd>
+                      {record.due
+                        ? new Date(record.due).toLocaleDateString(lang, {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        : t('No due date', 'لم يحدد موعد')}
+                    </dd>
+                  </div>
+                </dl>
+                <div
+                  className={`d-review-summary d-approver-summary${summaryExpanded ? ' is-expanded' : ''}`}
+                >
+                  <h3>{t('Document summary', 'ملخص الوثيقة')}</h3>
+                  <p id="d-approver-summary-text">
+                    {lang === 'ar' ? record.summaryAr || record.summary : record.summary}
+                  </p>
+                  <button
+                    className="p-link"
+                    aria-expanded={summaryExpanded}
+                    aria-controls="d-approver-summary-text"
+                    onClick={() => setSummaryExpanded((expanded) => !expanded)}
+                  >
+                    {summaryExpanded
+                      ? t('Show less', 'عرض أقل')
+                      : t('Read full summary', 'قراءة الملخص كاملاً')}
+                  </button>
+                </div>
+                {record.status === 'Returned' && (
+                  <div className="d-current-reviewer">
+                    <strong>
+                      {t('Waiting for the owner to make changes', 'بانتظار تعديلات مالك الوثيقة')}
+                    </strong>
+                    <p>{record.note}</p>
+                  </div>
+                )}
+                {record.status === 'Approved' && (
+                  <p className="p-note">
+                    {t(
+                      'Approval is complete. Publication is awaiting an administrator retry.',
+                      'اكتمل الاعتماد. ينتظر النشر إعادة المحاولة من المسؤول.',
+                    )}
+                  </p>
+                )}
+                {canDecide && !decision && (
+                  <details className="d-review-disclosure d-delegate-options">
+                    <summary>{t('Need another reviewer?', 'هل تحتاج إلى مراجع آخر؟')}</summary>
+                    <p>
+                      {t(
+                        'Delegate this review to a colleague in the demo.',
+                        'فوض هذه المراجعة إلى زميل في العرض التجريبي.',
+                      )}
+                    </p>
+                    <Field label={t('Delegate name', 'اسم المفوض')}>
+                      <input
+                        ref={delegateRef}
+                        value={delegateName}
+                        onChange={(event) => {
+                          setDelegateName(event.target.value)
+                          setDelegateError('')
+                        }}
+                        aria-invalid={!!delegateError}
+                        aria-describedby={delegateError ? 'd-delegate-error' : undefined}
+                      />
+                    </Field>
+                    {delegateError && (
+                      <p id="d-delegate-error" className="p-error" role="alert">
+                        {delegateError}
+                      </p>
+                    )}
+                    <button className="p-btn" onClick={() => reviewAction('delegate')}>
+                      {t('Delegate approval', 'تفويض الاعتماد')}
+                    </button>
+                  </details>
+                )}
+              </>
+            )}
+            {(tab === 'overview' || (reviewMode && tab === 'details')) && (
               <>
                 <div className="d-review-summary">
                   <h3>{t('Registered description', 'الوصف المسجل')}</h3>
@@ -237,8 +425,11 @@ export function RecordDetail({
                 </div>
               </>
             )}
-            {tab === 'workflow' && (
-              <>
+            {(tab === 'workflow' || (reviewMode && tab === 'details')) && (
+              <WorkflowDetails className={reviewMode ? 'd-review-disclosure' : undefined}>
+                {reviewMode && (
+                  <summary>{t('Approval progress & publishing', 'تقدم الاعتماد والنشر')}</summary>
+                )}
                 <div className="p-note">
                   <ShieldCheck size={20} />
                   {t(
@@ -273,7 +464,8 @@ export function RecordDetail({
                             : local(record.department, lang)}
                         </small>
                       </div>
-                      {record.status === 'PendingApproval' &&
+                      {!reviewMode &&
+                        record.status === 'PendingApproval' &&
                         rights.approve &&
                         !record.approvals.includes(step) &&
                         (record.flow === 'Parallel' ||
@@ -321,7 +513,7 @@ export function RecordDetail({
                   </div>
                 )}
                 {record.note && <p className="p-warning">{record.note}</p>}
-                {record.status === 'PendingApproval' && rights.approve && (
+                {!reviewMode && record.status === 'PendingApproval' && rights.approve && (
                   <>
                     <Field label={t('Return reason / delegate name', 'سبب الإرجاع / اسم المفوض')}>
                       <textarea
@@ -348,7 +540,7 @@ export function RecordDetail({
                     {t('Retry publication', 'إعادة محاولة النشر')}
                   </button>
                 )}
-              </>
+              </WorkflowDetails>
             )}
             {tab === 'governance' && (
               <>
@@ -470,46 +662,222 @@ export function RecordDetail({
               </div>
             )}
           </div>
+          {reviewMode && (
+            <div className="d-approver-actions" aria-label={t('Review decision', 'قرار المراجعة')}>
+              {decision ? (
+                <>
+                  <div
+                    className="d-decision-feedback"
+                    role="status"
+                    aria-live="polite"
+                    ref={decisionRef}
+                    tabIndex={-1}
+                  >
+                    <Check size={19} aria-hidden="true" />
+                    <div>
+                      <strong>
+                        {decision.action === 'return'
+                          ? t('Returned for changes', 'تم الإرجاع للتعديل')
+                          : decision.action === 'delegate'
+                            ? t('Review delegated', 'تم تفويض المراجعة')
+                            : t('Approval saved', 'تم حفظ الاعتماد')}
+                      </strong>
+                      <p>
+                        {decision.action === 'return'
+                          ? t(
+                              'Your reason is saved for the document owner.',
+                              'تم حفظ سبب الإرجاع لمالك الوثيقة.',
+                            )
+                          : decision.action === 'delegate'
+                            ? `${t('Delegated to', 'تم التفويض إلى')} ${decision.name}`
+                            : record.status === 'PendingApproval'
+                              ? `${local(decision.step, lang)} · ${t('Another review step is still required.', 'لا تزال هناك خطوة مراجعة أخرى مطلوبة.')}`
+                              : record.status === 'Approved'
+                                ? t(
+                                    'All review steps are complete. Publication needs an administrator retry.',
+                                    'اكتملت جميع خطوات المراجعة. يحتاج النشر إلى إعادة المحاولة من المسؤول.',
+                                  )
+                                : t(
+                                    'All review steps are complete. The document is published.',
+                                    'اكتملت جميع خطوات المراجعة وتم نشر الوثيقة.',
+                                  )}
+                      </p>
+                    </div>
+                  </div>
+                  {onSelect && pending ? (
+                    <button className="p-btn primary d-review-next" onClick={() => onSelect(pending)}>
+                      {t('Next pending document', 'الوثيقة التالية للاعتماد')}
+                      <ArrowRight size={15} />
+                    </button>
+                  ) : (
+                    <button className="p-btn primary" onClick={onClose}>
+                      {t('Back to approval queue', 'العودة إلى قائمة الاعتماد')}
+                    </button>
+                  )}
+                  {canDecide && (
+                    <button
+                      className="p-link d-review-continue"
+                      onClick={() => {
+                        setDecision(null)
+                        setReason('')
+                        setSelectedStep('')
+                      }}
+                    >
+                      {decision.action === 'delegate'
+                        ? t('Continue reviewing this document', 'متابعة مراجعة هذه الوثيقة')
+                        : t('Review the remaining step', 'مراجعة الخطوة المتبقية')}
+                    </button>
+                  )}
+                </>
+              ) : canDecide ? (
+                returning ? (
+                  <>
+                    <Field label={t('What needs to change? (required)', 'ما التعديلات المطلوبة؟ (إلزامي)')}>
+                      <textarea
+                        ref={returnReasonRef}
+                        value={reason}
+                        required
+                        aria-invalid={!!error}
+                        aria-describedby={error ? 'd-review-decision-error' : 'd-return-help'}
+                        onChange={(event) => {
+                          setReason(event.target.value)
+                          setError('')
+                        }}
+                        placeholder={t(
+                          'Describe the changes the owner should make.',
+                          'وضح التعديلات التي يجب أن يجريها مالك الوثيقة.',
+                        )}
+                      />
+                    </Field>
+                    <small id="d-return-help">
+                      {t(
+                        'The owner will see this reason with the returned document.',
+                        'سيظهر هذا السبب لمالك الوثيقة عند إرجاعها.',
+                      )}
+                    </small>
+                    <div className="d-approver-buttons">
+                      <button className="p-btn danger" onClick={() => reviewAction('return')}>
+                        {t('Confirm return', 'تأكيد الإرجاع')}
+                      </button>
+                      <button
+                        className="p-btn"
+                        onClick={() => {
+                          setReturning(false)
+                          setError('')
+                        }}
+                      >
+                        {t('Cancel', 'إلغاء')}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {eligibleSteps.length > 1 ? (
+                      <Field label={t('Reviewing as', 'المراجعة بصفة')}>
+                        <select value={currentStep} onChange={(event) => setSelectedStep(event.target.value)}>
+                          {eligibleSteps.map((step) => (
+                            <option key={step} value={step}>
+                              {local(step, lang)}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    ) : (
+                      <p className="d-decision-as">
+                        {t('Reviewing as', 'المراجعة بصفة')} <strong>{local(currentStep, lang)}</strong>
+                      </p>
+                    )}
+                    <div className="d-approver-buttons">
+                      <button className="p-btn primary" onClick={() => reviewAction('approve')}>
+                        <Check size={16} />
+                        {t('Approve & sign', 'اعتماد وتوقيع')}
+                      </button>
+                      <button
+                        className="p-btn"
+                        onClick={() => {
+                          setReturning(true)
+                          setError('')
+                        }}
+                      >
+                        {t('Return for changes', 'إرجاع للتعديل')}
+                      </button>
+                    </div>
+                    <small>
+                      {t(
+                        'Demo decision · recorded in document activity',
+                        'قرار تجريبي · يسجل في نشاط الوثيقة',
+                      )}
+                    </small>
+                  </>
+                )
+              ) : (
+                <>
+                  <p className="d-decision-as">
+                    {record.status === 'Returned'
+                      ? t(
+                          'No approval is needed until the owner resubmits.',
+                          'لا يلزم الاعتماد حتى يعيد المالك إرسال الوثيقة.',
+                        )
+                      : t(
+                          'There is no pending decision for this document.',
+                          'لا يوجد قرار معلق لهذه الوثيقة.',
+                        )}
+                  </p>
+                  {onSelect && pending ? (
+                    <button className="p-btn primary d-review-next" onClick={() => onSelect(pending)}>
+                      {t('Next pending document', 'الوثيقة التالية للاعتماد')}
+                      <ArrowRight size={15} />
+                    </button>
+                  ) : (
+                    <button className="p-btn" onClick={onClose}>
+                      {t('Back to approval queue', 'العودة إلى قائمة الاعتماد')}
+                    </button>
+                  )}
+                </>
+              )}
+              {error && (
+                <p id="d-review-decision-error" className="p-error" role="alert">
+                  {error}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
-      {error && (
+      {error && !reviewMode && (
         <p className="p-error d-review-error" role="alert">
           {error}
         </p>
       )}
-      <footer className="d-review-footer">
-        <button className="p-btn" onClick={onClose}>
-          {t('Close', 'إغلاق')}
-        </button>
-        <span />
-        {rights.register && ['Draft', 'Classified', 'Returned'].includes(record.status) && (
-          <>
-            <button className="p-btn" onClick={onEdit}>
-              {t('Edit registration', 'تعديل التسجيل')}
-            </button>
-            <button className="p-btn primary" onClick={() => act('submit')}>
-              {t('Submit for approval', 'إرسال للاعتماد')}
-            </button>
-          </>
-        )}
-        {rights.register && record.status === 'Published' && !record.hold && !record.declared && (
-          <button
-            className="p-btn"
-            onClick={() => {
-              act('version')
-              onClose()
-            }}
-          >
-            {t('Create revision draft', 'إنشاء مسودة إصدار')}
+      {!reviewMode && (
+        <footer className="d-review-footer">
+          <button className="p-btn" onClick={onClose}>
+            {t('Close', 'إغلاق')}
           </button>
-        )}
-        {onSelect && pending && reviewMode && (
-          <button className="p-btn primary d-review-next" onClick={() => onSelect(pending)}>
-            {t('Next pending document', 'الوثيقة التالية للاعتماد')}
-            <ArrowRight size={14} />
-          </button>
-        )}
-      </footer>
+          <span />
+          {rights.register && ['Draft', 'Classified', 'Returned'].includes(record.status) && (
+            <>
+              <button className="p-btn" onClick={onEdit}>
+                {t('Edit registration', 'تعديل التسجيل')}
+              </button>
+              <button className="p-btn primary" onClick={() => act('submit')}>
+                {t('Submit for approval', 'إرسال للاعتماد')}
+              </button>
+            </>
+          )}
+          {rights.register && record.status === 'Published' && !record.hold && !record.declared && (
+            <button
+              className="p-btn"
+              onClick={() => {
+                act('version')
+                onClose()
+              }}
+            >
+              {t('Create revision draft', 'إنشاء مسودة إصدار')}
+            </button>
+          )}
+        </footer>
+      )}
     </section>
   )
 }

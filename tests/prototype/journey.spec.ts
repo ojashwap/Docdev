@@ -32,10 +32,10 @@ test('register, approve, index, cite, hold and restore the original bytes', asyn
   await page.getByLabel('I have reviewed the document and classification').check()
   await page.getByRole('button', { name: 'Submit for approval', exact: true }).click()
   await page.getByRole('button', { name: /Client workshop memorandum.*DOC-/ }).click()
-  await page.getByRole('button', { name: 'Approval & publishing', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Review', exact: true }).click()
   await page.getByRole('button', { name: 'Approve & sign', exact: true }).click()
   await expect(page.getByRole('dialog').getByText('Published', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Overview', exact: true }).last().click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Details', exact: true }).click()
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download original / sample' }).click()
   const download = await downloadPromise
@@ -43,7 +43,7 @@ test('register, approve, index, cite, hold and restore the original bytes', asyn
   expect(await readFile((await download.path())!, 'utf8')).toBe(
     'DOCAYA SAMPLE\nClient workshop memorandum\nProposed service improvements for client review.',
   )
-  await page.getByRole('button', { name: 'Close', exact: true }).click()
+  await page.getByRole('button', { name: 'Close review drawer', exact: true }).click()
   await navigate(page, 'Staging & publishing')
   await page.getByRole('button', { name: 'Search indexing', exact: true }).click()
   await page.getByRole('button', { name: 'Run demo batch', exact: true }).click()
