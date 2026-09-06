@@ -23,7 +23,6 @@ import {
   Search,
   Settings2,
   ShieldCheck,
-  Sparkles,
   Workflow,
   X,
 } from 'lucide-react'
@@ -61,10 +60,12 @@ import { clearOriginals } from './files'
 import { SearchPage, AssistantDock } from './Discovery'
 import { ApprovalQueue } from './ApprovalQueue'
 import { approvalQueue, type ApprovalView } from './approval-queue'
+import { DocayaMark, DocayaAIMark } from './BrandMarks'
 import './prototype.css'
 import './experience.css'
 import './typography.css'
 import './approval-queue.css'
+import './brand.css'
 type Page =
   | 'home'
   | 'documents'
@@ -78,13 +79,19 @@ type Page =
   | 'audit'
   | 'admin'
   | 'workshop'
-const navigation: { id: Page; en: string; ar: string; icon: typeof LayoutDashboard; group: number }[] = [
+const navigation: {
+  id: Page
+  en: string
+  ar: string
+  icon: typeof LayoutDashboard | typeof DocayaAIMark
+  group: number
+}[] = [
   { id: 'home', en: 'Overview', ar: 'نظرة عامة', icon: LayoutDashboard, group: 0 },
   { id: 'documents', en: 'Document register', ar: 'سجل الوثائق', icon: FolderOpen, group: 1 },
   { id: 'workflows', en: 'Approvals', ar: 'الاعتمادات', icon: Workflow, group: 1 },
   { id: 'operations', en: 'Staging & publishing', ar: 'التجهيز والنشر', icon: CloudUpload, group: 1 },
   { id: 'correspondence', en: 'Correspondence', ar: 'المراسلات', icon: Mail, group: 1 },
-  { id: 'search', en: 'Search & Ask Docaya', ar: 'البحث واسأل دوكايا', icon: Sparkles, group: 2 },
+  { id: 'search', en: 'Search & Ask Docaya', ar: 'البحث واسأل دوكايا', icon: DocayaAIMark, group: 2 },
   { id: 'records', en: 'Records & retention', ar: 'السجلات والحفظ', icon: LockKeyhole, group: 2 },
   {
     id: 'reports',
@@ -411,6 +418,14 @@ export default function PrototypeApp() {
             {lang === 'en' ? 'العربية' : 'English'}
           </button>
           <div>
+            <img
+              className="d-welcome-art"
+              src={`${import.meta.env.BASE_URL}brand/docaya-welcome.png`}
+              width={260}
+              height={173}
+              alt=""
+              draggable={false}
+            />
             <span className="p-badge internal">{t('CLIENT EXPERIENCE PROTOTYPE', 'نموذج تجربة العميل')}</span>
             <h2>{t('Welcome to Docaya', 'مرحباً بك في دوكايا')}</h2>
             <p className="p-ar-brand" lang="ar">
@@ -855,9 +870,9 @@ export default function PrototypeApp() {
                     ['Classify', 'التصنيف', 'documents', FolderOpen],
                     ['Approve', 'الاعتماد', 'workflows', ShieldCheck],
                     ['Publish', 'النشر', 'operations', ArrowDownToLine],
-                    ['Discover', 'الاكتشاف', 'search', Sparkles],
+                    ['Discover', 'الاكتشاف', 'search', DocayaAIMark],
                   ].map(([en, ar, target, Icon], i) => {
-                    const StepIcon = Icon as typeof CloudUpload
+                    const StepIcon = Icon as typeof CloudUpload | typeof DocayaAIMark
                     return (
                       <button key={String(en)} onClick={() => navigate(target as Page)}>
                         <span>
@@ -1099,13 +1114,13 @@ function Brand() {
   return (
     <div className="p-brand">
       <span className="p-brand-mark">
-        D<span />
+        <DocayaMark size={40} />
       </span>
       <div>
         <strong>
-          Docaya <b lang="ar">دوكايا</b>
+          <span lang="en">Docaya</span> <b lang="ar">دوكايا</b>
         </strong>
-        <small>DOCUMENT INTELLIGENCE</small>
+        <small>Document intelligence</small>
       </div>
     </div>
   )

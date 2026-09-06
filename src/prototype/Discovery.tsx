@@ -9,7 +9,6 @@ import {
   List,
   Search,
   SlidersHorizontal,
-  Sparkles,
   ThumbsDown,
   ThumbsUp,
   X,
@@ -20,6 +19,7 @@ import { Badge, DocumentTable, Empty, type Translate } from './ui'
 import { DocumentPreview } from './DocumentPreview'
 import { local } from './translations'
 import { discover } from './knowledge-search'
+import { DocayaAIMark } from './BrandMarks'
 import './discovery.css'
 
 function SourceCard({
@@ -111,7 +111,7 @@ export function SearchPage({
       <section className="d-discovery-hero">
         <div className="d-discovery-title">
           <span className="d-ai-emblem">
-            <Sparkles size={25} />
+            <DocayaAIMark size={42} />
           </span>
           <div>
             <p className="p-eyebrow">
@@ -133,7 +133,7 @@ export function SearchPage({
             ask(question)
           }}
         >
-          <Sparkles size={20} />
+          <DocayaAIMark size={28} />
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
@@ -443,7 +443,7 @@ export function AssistantDock({
         >
           <header>
             <span className="d-assistant-mark">
-              <Sparkles size={20} />
+              <DocayaAIMark size={32} />
             </span>
             <div>
               <strong>{t('Docaya AI Assistant', 'مساعد دوكايا الذكي')}</strong>
@@ -456,7 +456,9 @@ export function AssistantDock({
           <div className="d-assistant-scroll">
             {!messages.length && (
               <div className="d-assistant-welcome">
-                <span>✦</span>
+                <span>
+                  <DocayaAIMark size={46} />
+                </span>
                 <h3>{t('A little help. A clearer next step.', 'مساعدة بسيطة. وخطوة أوضح.')}</h3>
                 <p>
                   {t(
@@ -502,7 +504,7 @@ export function AssistantDock({
                   <p className="d-user-message">{message.question}</p>
                   <div className="d-assistant-message">
                     <strong>
-                      <Sparkles size={14} />
+                      <DocayaAIMark size={25} />
                       {t('Here is what your records say', 'هذا ما تقوله سجلاتك')}
                     </strong>
                     {sources.length ? (
@@ -615,7 +617,7 @@ export function AssistantDock({
         aria-expanded={open}
       >
         <span>
-          <Sparkles size={23} />
+          <DocayaAIMark size={32} />
         </span>
         <div>
           <strong>{t('Ask Docaya', 'اسأل دوكايا')}</strong>

@@ -6,6 +6,8 @@ An interactive English/Arabic document management prototype for UAE Ministry of 
 
 **[Open the live demo](https://ojashwas.github.io/intdocayaprototype/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
 
+<a href="public/brand/docaya-welcome.png"><img src="public/brand/docaya-welcome.png" width="680" alt="Three-dimensional Docaya welcome artwork in UAE-inspired colours"></a>
+
 Select **Enter demo workspace** and use **System Administrator** to explore all modules. Switch language to demonstrate Arabic and right-to-left layouts.
 
 > This is a browser-based UI/UX prototype. Sample records and identities are fictional; AI, authentication and external integrations are simulated. No backend, Azure account, credentials or `.env` file is required to run it.
@@ -19,7 +21,7 @@ Select **Enter demo workspace** and use **System Administrator** to explore all 
 | Approval queue             | Scan pending documents by due date, open a focused review drawer, approve or return with a reason, and continue explicitly.    |
 | Search & Ask Docaya        | Browse document thumbnails or a list, filter results, save queries and open cited records.                                     |
 | Docaya AI Assistant        | Open the floating bottom-right assistant, inspect source thumbnails and provide response feedback.                             |
-| UAE design and readability | Subtle UAE landmark decoration, warm ivory and gold, bundled Inter and Noto Sans Arabic, clearer text and responsive layouts.  |
+| UAE design and readability | Distinct Docaya and Ask Docaya AI marks, UAE-inspired colours, a 3D welcome illustration, bundled Inter and Noto Sans Arabic.  |
 | Governance and workshops   | Explore holds, retention, correspondence, reports, audit history and M1–M15 coverage; record and export client expectations.   |
 
 ![Docaya document register with readable typography and synthetic UAE MOI records](docs/images/docaya-register.png)
@@ -114,6 +116,7 @@ Open **http://localhost:4173/**. Each origin has independent demo data, includin
 | Document                                                                    | Purpose                                                                                               |
 | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [Client demonstration guide](docs/prototype-demo.md)                        | Walkthrough, current functionality, typography, persistence and M1–M15 coverage.                      |
+| [Brand assets and usage](docs/branding.md)                                  | Docaya and AI logo gallery, welcome artwork, palette, file links and presentation guidance.           |
 | [Architecture](docs/architecture.md)                                        | Current browser implementation, source map, storage and publishing; retained connected-system design. |
 | [Enterprise specification](<docs/Solution Doc/Docaya-DMS-Specification.md>) | Original enterprise requirements and engineering baseline, with a current prototype status note.      |
 | [Threat model](docs/threat-model.md)                                        | Retained connected-application security design reference.                                             |

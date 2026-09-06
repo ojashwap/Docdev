@@ -101,7 +101,9 @@ Accepted formats are **PDF, DOCX, XLSX, PPTX, PNG, JPEG, TIFF and TXT**, with a 
 
 ## Readability and UAE visual design
 
-The current design uses warm ivory, muted gold and a faint decorative UAE-inspired skyline. The artwork is decorative and is not an official ministry emblem. Synthetic scenarios cover Traffic & Patrols, Civil Defence, Forensic Sciences, Residency & Identity, and Strategy & Governance.
+The current design pairs a document-shaped Docaya **D** mark with a distinct **Ask Docaya AI** speech-bubble/spark mark and a three-dimensional welcome illustration. The branding draws on UAE green, red, near-black and white; the document workspace retains warm ivory, muted gold and a faint decorative UAE-inspired skyline. Logos appear on white plates, with native English/Arabic wordmarks for readability. See [Brand assets and usage](branding.md) for the PNG gallery and palette.
+
+The artwork and decorative seal are not official ministry emblems. Synthetic scenarios cover Traffic & Patrols, Civil Defence, Forensic Sciences, Residency & Identity, and Strategy & Governance.
 
 | Element                    | Current design                                                                                     |
 | -------------------------- | -------------------------------------------------------------------------------------------------- |
