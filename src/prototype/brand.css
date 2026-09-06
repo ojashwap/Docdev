@@ -6,15 +6,21 @@
   user-select: none;
 }
 
+.d-docaya-mark {
+  object-fit: cover;
+  object-position: center;
+  border-radius: 10px;
+}
+
 .p-app .p-brand {
   gap: 10px;
   align-items: center;
 }
 
 .p-app .p-brand-mark {
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
+  width: 60px;
+  height: 60px;
+  flex: 0 0 60px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -63,9 +69,9 @@
 }
 
 .p-app .p-signin-story .p-brand-mark {
-  width: 48px;
-  height: 48px;
-  flex-basis: 48px;
+  width: 60px;
+  height: 60px;
+  flex-basis: 60px;
   background: #fff;
   border-radius: 10px;
 }

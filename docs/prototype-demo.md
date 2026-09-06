@@ -101,7 +101,9 @@ Accepted formats are **PDF, DOCX, XLSX, PPTX, PNG, JPEG, TIFF and TXT**, with a 
 
 ## Readability and UAE visual design
 
-The current Docaya symbol has three open flowing page/ribbon forms in green, red and near-black. **Ask Docaya AI** uses a companion open orbit with a green ribbon, dark lower arc and small red node. An open paper fan and very light civic architecture form the welcome illustration. The branding draws on UAE colours; the document workspace retains warm ivory, muted gold and a faint decorative UAE-inspired skyline. Symbols sit directly on light surfaces, with white plates only on dark backgrounds and native English/Arabic wordmarks for readability. See [Brand assets and usage](branding.md) for the current `-v2` PNG gallery and palette; earlier PNGs are retained as archived explorations.
+The selected main Docaya identity is the three-dimensional emerald **D** folder with white paper sheets and a pale UAE skyline. Login shows the complete landscape image; the top-left brand area uses a centre-focused square CSS presentation of the same unmodified file. All **Ask Docaya AI** features use the selected emerald **D** speech-bubble logo with its white sparkle. These are the user's chosen existing images, with no new artwork generation for this selection.
+
+The branding draws on UAE green, red, near-black and white; the document workspace retains warm ivory, muted gold and a faint decorative UAE-inspired skyline. Native English/Arabic wordmarks preserve readability. See [Brand assets and usage](branding.md) for the selected PNG pair and palette. The flat Docaya logo and all `-v2` assets are retained as archived explorations, not active branding.
 
 The artwork and decorative seal are not official ministry emblems. Synthetic scenarios cover Traffic & Patrols, Civil Defence, Forensic Sciences, Residency & Identity, and Strategy & Governance.
 

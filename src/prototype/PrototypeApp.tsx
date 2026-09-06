@@ -420,7 +420,7 @@ export default function PrototypeApp() {
           <div>
             <img
               className="d-welcome-art"
-              src={`${import.meta.env.BASE_URL}brand/docaya-welcome-v2.png`}
+              src={`${import.meta.env.BASE_URL}brand/docaya-welcome.png`}
               width={260}
               height={173}
               alt=""
@@ -1114,7 +1114,7 @@ function Brand() {
   return (
     <div className="p-brand">
       <span className="p-brand-mark">
-        <DocayaMark size={40} />
+        <DocayaMark size={60} />
       </span>
       <div>
         <strong>

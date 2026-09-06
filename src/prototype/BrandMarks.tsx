@@ -8,7 +8,7 @@ export function DocayaMark({ size = 44, className = '', label = '' }: BrandMarkP
   return (
     <img
       className={`d-brand-image d-docaya-mark ${className}`.trim()}
-      src={`${import.meta.env.BASE_URL}brand/docaya-mark-v2.png`}
+      src={`${import.meta.env.BASE_URL}brand/docaya-welcome.png`}
       width={size}
       height={size}
       alt={label}
@@ -21,7 +21,7 @@ export function DocayaAIMark({ size = 32, className = '', label = '' }: BrandMar
   return (
     <img
       className={`d-brand-image d-docaya-ai-mark ${className}`.trim()}
-      src={`${import.meta.env.BASE_URL}brand/ask-docaya-mark-v2.png`}
+      src={`${import.meta.env.BASE_URL}brand/ask-docaya-mark.png`}
       width={size}
       height={size}
       alt={label}
