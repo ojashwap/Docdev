@@ -16,6 +16,12 @@
     "/^git show HEAD:server/services/azure-search\\.mjs \\| Select-Object -First 25; node --check server/services/azure-search\\.mjs$/": {
       "approve": true,
       "matchCommandLine": true
+    },
+    "git pull": true,
+    "git stash": true,
+    "/^node -e \"JSON\\.parse\\(require\\('fs'\\)\\.readFileSync\\('\\.vscode/settings\\.json','utf8'\\)\\); console\\.log\\('settings\\.json OK'\\)\"; git status --short$/": {
+      "approve": true,
+      "matchCommandLine": true
     }
   },
   "chat.agentSkillsLocations": {

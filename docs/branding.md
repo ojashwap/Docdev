@@ -37,7 +37,7 @@ These values describe the palette intent. The generated artwork includes shading
 - Keep **Docaya / دوكايا** and assistant labels as native interface text using bundled **Inter** and **Noto Sans Arabic**. This preserves readable wordmarks, bilingual layout and accessibility at small sizes.
 - Keep essential headings and controls as native interface elements with adequate contrast and spacing around the main Docaya artwork.
 
-The shared [BrandMarks.tsx](../src/prototype/BrandMarks.tsx) components provide the selected Docaya and AI images with configurable sizes and accessible labels. [brand.css](../src/prototype/brand.css) controls their presentation, including the compact centre-focused Docaya view. Asset URLs respect the application's Vite base path so they work locally and on GitHub Pages.
+The shared [BrandMarks.tsx](../src/prototype/BrandMarks.tsx) components provide the selected Docaya and AI images with configurable sizes and accessible labels. [brand.css](../src/prototype/brand.css) controls their presentation, including the compact centre-focused Docaya view. Asset URLs respect the application's Vite base path so they work locally and on the hosted Azure static website.
 
 ## In the application
 

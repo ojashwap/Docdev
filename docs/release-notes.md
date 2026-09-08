@@ -1,8 +1,16 @@
 # Docaya prototype release notes
 
+## 8 September 2026 — Azure hosted demo, notification center and split audit trail
+
+[Open the live application](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/) · [Publishing instructions](../README.md#publish-the-hosted-demo-azure-storage-static-website)
+
+- **Hosted demo moved to Azure Storage.** The prototype is now published to the `$web/docayapro/` folder of storage account `sthmaihrnhp04` and served at [https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/). The build uses `/docayapro/` as its asset base. GitHub Pages is no longer used because the private repository's plan does not support it.
+- **Notification center.** The bell opens a summary with metric cards (pending my approval, overdue approvals, expiring within 30 days, unread) and highlighted needs-attention rows; the badge shows a live count.
+- **Audit trail split into two views.** The Audit page now provides a **Document audit trail** (filterable by document) and a **User audit trail** (filterable by user), each with its own CSV export.
+
 ## 6 September 2026 — selected branding and client demo
 
-[Open the live application](https://hypermine2050.github.io/Docaya-Pro/) · [Run locally](../README.md#run-locally) · [Client demonstration guide](prototype-demo.md)
+[Open the live application](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/) · [Run locally](../README.md#run-locally) · [Client demonstration guide](prototype-demo.md)
 
 ### Approved visual identity
 
@@ -28,7 +36,7 @@ See the [demonstration guide](prototype-demo.md) for the walkthrough and the imp
 
 ### Validation and publishing
 
-The canonical repository is [hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro), and GitHub Pages publishes the prototype at [https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/) with `/Docaya-Pro/` as the asset base.
+The canonical repository is [hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro), and the prototype is published to an Azure Storage static website at [https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/) with `/docayapro/` as the asset base.
 
 The selected-branding application revision [`2350baf`](https://github.com/hypermine2050/Docaya-Pro/commit/2350baf011cc767b09527ae43f71e977f3a3ad8e) passed production build, lint and formatting checks. Desktop and Arabic mobile visual checks found no broken images, page overflow or automated accessibility violations on the checked screens. GitHub's quality workflow, including the prototype browser journeys, and the Pages deployment both succeeded. The published login, main logo, AI logo and favicon were verified against the selected files.
 

@@ -4,7 +4,7 @@
 
 Updated **6 September 2026** for the current prototype experience.
 
-**[Open the hosted demo](https://hypermine2050.github.io/Docaya-Pro/)** · [Local setup](../README.md#run-locally) · [Architecture](architecture.md)
+**[Open the hosted demo](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/)** · [Local setup](../README.md#run-locally) · [Architecture](architecture.md)
 
 This guide describes what the browser prototype actually demonstrates. Records, people and MOI scenarios are synthetic. Authentication, cloud services, AI generation and digital signatures are simulated; this application does not establish production security or compliance.
 
@@ -13,7 +13,7 @@ This guide describes what the browser prototype actually demonstrates. Records, 
 1. Open the hosted demo or start the local site using the README instructions. No API, Azure account or credentials are required.
 2. Select **Enter demo workspace** and **System Administrator** for the full demonstration.
 3. Check English and Arabic layouts and open the floating assistant once to introduce it.
-4. Use sample documents or non-sensitive demonstration files. Each browser/origin has its own workspace; your localhost records will not appear automatically on GitHub Pages.
+4. Use sample documents or non-sensitive demonstration files. Each browser/origin has its own workspace; your localhost records will not appear automatically on the hosted site.
 5. Export existing **Client workshop** notes before using **Reset demo data**. Reset removes local changes, uploaded originals and workshop notes.
 
 ## Fifteen-minute walkthrough
@@ -172,6 +172,6 @@ Validation includes build, lint, unit/integration checks and prototype browser j
 
 ## Publishing the client demo
 
-The canonical repository is **[hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro)** and the hosted URL is **[https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/)**. Push to `main`: **Prototype quality** runs, then **Publish prototype to GitHub Pages** deploys the exact tested commit after a successful push run. Pull-request runs do not publish. Manual dispatch builds the selected revision without requiring that preceding quality result; validate before using it.
+The canonical repository is **[hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro)** and the hosted URL is **[https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/)** (Azure Storage static website, `$web/docayapro/` folder). Push to `main` so **Prototype quality** validates the change, then build with `DOCAYA_BASE_PATH=/docayapro/` and upload `dist/` with AzCopy.
 
-Pages builds with `/Docaya-Pro/` as the asset base and uploads only `dist/`. Each client starts with an independent sample workspace. See the [publishing instructions](../README.md#publish-to-github-pages).
+The hosted build uses `/docayapro/` as the asset base and uploads only `dist/`. Each client starts with an independent sample workspace. See the [publishing instructions](../README.md#publish-the-hosted-demo-azure-storage-static-website).

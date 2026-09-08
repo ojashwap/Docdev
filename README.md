@@ -4,7 +4,7 @@
 
 An interactive English/Arabic document management prototype for UAE Ministry of Interior client workshops. Explore document capture, approvals, publishing, discovery, records governance and administration with synthetic MOI scenarios.
 
-**[Open the live demo](https://hypermine2050.github.io/Docaya-Pro/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
+**[Open the live demo](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
 
 <a href="public/brand/docaya-welcome.png"><img src="public/brand/docaya-welcome.png" width="680" alt="Selected Docaya identity: a three-dimensional emerald D folder with white sheets and a pale UAE skyline"></a>
 
@@ -100,12 +100,12 @@ The prototype browser journeys cover classification, pending queue ordering and 
 To run those browser journeys against the hosted build:
 
 ```powershell
-npx cross-env DOCAYA_E2E_URL=https://hypermine2050.github.io/Docaya-Pro/ npm run test:e2e
+npx cross-env DOCAYA_E2E_URL=https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/ npm run test:e2e
 ```
 
 The latest UI revision was also checked for loaded bilingual fonts, desktop/mobile layout, review and registration drawers, and automated accessibility findings. These checks support prototype quality; they do not establish production compliance.
 
-## Publish to GitHub Pages
+## Publish the hosted demo (Azure Storage static website)
 
 Canonical repository: **[hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro)**.
 
@@ -115,11 +115,24 @@ Git remote `origin` should point to:
 https://github.com/hypermine2050/Docaya-Pro.git
 ```
 
-The hosted demo URL is **[https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/)**.
+The hosted demo URL is **[https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/)**, served from the `$web/docayapro/` folder of the Azure Storage account `sthmaihrnhp04` (resource group `rg-hmai-hypersigma-hp03`, subscription `hmai-hyperaihub-products`). The storage account also hosts other applications at the site root, so Docaya must only ever be published inside its own `docayapro/` folder.
 
-Push changes to **`main`**. [Prototype quality](.github/workflows/ci.yml) runs first; after a successful push run, [Publish prototype to GitHub Pages](.github/workflows/prototype-pages.yml) builds and deploys that exact tested commit. Pull-request runs do not publish. The build uses `/Docaya-Pro/` as its asset base and publishes only `dist/`.
+To deploy an update:
 
-Manual publishing is also available in GitHub Actions. A manual run builds the selected revision and does not require a preceding successful quality run, so complete validation first.
+```powershell
+# 1. Build with the hosted base path
+$env:DOCAYA_BASE_PATH = '/docayapro/'
+npm run build
+
+# 2. Upload dist/ into $web/docayapro/ with AzCopy and a short-lived SAS token
+#    (generate the SAS in the Azure Portal: Blob service, Container + Object
+#    resource types, Read/Write/Add/Create/List permissions)
+azcopy copy "dist\*" 'https://sthmaihrnhp04.blob.core.windows.net/$web/docayapro/?<SAS>' --recursive
+```
+
+Do not overwrite files outside `docayapro/`. Paste SAS tokens directly into the terminal and let them expire quickly.
+
+> **GitHub Pages is not used.** The repository is private on a plan without Pages support, so the [Publish prototype to GitHub Pages](.github/workflows/prototype-pages.yml) workflow cannot deploy. [Prototype quality](.github/workflows/ci.yml) still validates every push to `main`.
 
 For a local production-build preview:
 

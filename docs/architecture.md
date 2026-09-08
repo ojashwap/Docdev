@@ -4,13 +4,13 @@ Updated **6 September 2026**. This document distinguishes the current browser pr
 
 ## Current prototype
 
-`src/main.tsx` loads `src/prototype/PrototypeApp.tsx`, a React 18 and TypeScript application built with Vite. Local development and GitHub Pages run the same browser application. No API, database, cloud account, credentials or `.env` file is needed for its demonstration flows.
+`src/main.tsx` loads `src/prototype/PrototypeApp.tsx`, a React 18 and TypeScript application built with Vite. Local development and the hosted Azure static website run the same browser application. No API, database, cloud account, credentials or `.env` file is needed for its demonstration flows.
 
 ```mermaid
 flowchart LR
     Repo[GitHub main branch] --> Quality[Prototype quality checks]
-    Quality -->|Successful push| Pages[Build and deploy static dist]
-    Pages --> UI[Docaya browser UI]
+    Quality -->|Validated commit| Deploy[Manual AzCopy upload to Azure $web/docayapro/]
+    Deploy --> UI[Docaya browser UI]
     Vite[Local Vite server] --> UI
     UI <--> Workspace[localStorage workspace]
     UI <--> Files[IndexedDB original files]
@@ -45,7 +45,7 @@ Paths below are relative to `src/prototype/`, except the repository-level test p
 - **Preferences and session:** language is saved locally; demo sign-in uses sessionStorage. Persona and active page reset on refresh. Assistant chat and ratings remain temporary component state.
 - **Reset:** restores seeded workspace data and removes this prototype's saved originals and workshop notes. Export notes before resetting.
 
-Each browser/origin is independent. GitHub Pages, localhost and different localhost ports do not share data. Storage can be lost through site-data clearing or browser eviction. This is not shared storage or a collaboration backend, and browser data is not included in the static build or a Git push.
+Each browser/origin is independent. The hosted site, localhost and different localhost ports do not share data. Storage can be lost through site-data clearing or browser eviction. This is not shared storage or a collaboration backend, and browser data is not included in the static build or a Git push.
 
 ## Approval workspace
 
@@ -69,9 +69,9 @@ Role and department rules demonstrate intended visibility and action availabilit
 
 `npm start -- --strictPort` starts Vite on localhost:5173. `npm run build` checks TypeScript and generates `dist/`; `npm run preview -- --host localhost --port 4173 --strictPort` serves a local production preview. See [README setup](../README.md#run-locally).
 
-For automatic publication, the canonical repository is [hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro). [Prototype quality](../.github/workflows/ci.yml) checks a push to `main`; [Publish prototype to GitHub Pages](../.github/workflows/prototype-pages.yml) runs after success and checks out that run's exact `head_sha`. It builds with `DOCAYA_BASE_PATH=/Docaya-Pro/` and publishes only `dist/` to [https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/). Pull-request runs do not deploy.
+The canonical repository is [hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro). [Prototype quality](../.github/workflows/ci.yml) checks every push to `main`. The hosted demo is published manually to an Azure Storage static website: the build runs with `DOCAYA_BASE_PATH=/docayapro/` and `dist/` is uploaded with AzCopy into the `$web/docayapro/` folder of storage account `sthmaihrnhp04`, serving [https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/](https://sthmaihrnhp04.z13.web.core.windows.net/docayapro/). The storage account hosts other applications at the site root, so uploads must stay inside `docayapro/`. See the [README publishing instructions](../README.md#publish-the-hosted-demo-azure-storage-static-website).
 
-The Pages workflow also supports manual dispatch using the selected revision (`github.sha`), which does not require the preceding quality result. Manual publishers should validate first. Browser state never enters the deployment artifact.
+GitHub Pages is not used: the repository is private on a plan without Pages support, so the retained [Pages workflow](../.github/workflows/prototype-pages.yml) cannot deploy. Browser state never enters the deployment artifact.
 
 ## Retained connected-application design
 
