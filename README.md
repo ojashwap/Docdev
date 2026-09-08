@@ -4,7 +4,7 @@
 
 An interactive English/Arabic document management prototype for UAE Ministry of Interior client workshops. Explore document capture, approvals, publishing, discovery, records governance and administration with synthetic MOI scenarios.
 
-**[Open the live demo](https://ojashwas.github.io/intdocayaprototype/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
+**[Open the live demo](https://hypermine2050.github.io/Docaya-Pro/)** · [Client demonstration guide](docs/prototype-demo.md) · [Architecture](docs/architecture.md)
 
 <a href="public/brand/docaya-welcome.png"><img src="public/brand/docaya-welcome.png" width="680" alt="Selected Docaya identity: a three-dimensional emerald D folder with white sheets and a pale UAE skyline"></a>
 
@@ -100,16 +100,24 @@ The prototype browser journeys cover classification, pending queue ordering and 
 To run those browser journeys against the hosted build:
 
 ```powershell
-npx cross-env DOCAYA_E2E_URL=https://ojashwas.github.io/intdocayaprototype/ npm run test:e2e
+npx cross-env DOCAYA_E2E_URL=https://hypermine2050.github.io/Docaya-Pro/ npm run test:e2e
 ```
 
 The latest UI revision was also checked for loaded bilingual fonts, desktop/mobile layout, review and registration drawers, and automated accessibility findings. These checks support prototype quality; they do not establish production compliance.
 
 ## Publish to GitHub Pages
 
-Repository: **[Ojashwas/intdocayaprototype](https://github.com/Ojashwas/intdocayaprototype)**.
+Canonical repository: **[hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro)**.
 
-Push changes to **`main`**. [Prototype quality](.github/workflows/ci.yml) runs first; after a successful push run, [Publish prototype to GitHub Pages](.github/workflows/prototype-pages.yml) builds and deploys that exact tested commit. Pull-request runs do not publish. The build uses `/intdocayaprototype/` as its asset base and publishes only `dist/`.
+Git remote `origin` should point to:
+
+```powershell
+https://github.com/hypermine2050/Docaya-Pro.git
+```
+
+The hosted demo URL is **[https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/)**.
+
+Push changes to **`main`**. [Prototype quality](.github/workflows/ci.yml) runs first; after a successful push run, [Publish prototype to GitHub Pages](.github/workflows/prototype-pages.yml) builds and deploys that exact tested commit. Pull-request runs do not publish. The build uses `/Docaya-Pro/` as its asset base and publishes only `dist/`.
 
 Manual publishing is also available in GitHub Actions. A manual run builds the selected revision and does not require a preceding successful quality run, so complete validation first.
 

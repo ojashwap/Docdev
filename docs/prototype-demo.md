@@ -4,7 +4,7 @@
 
 Updated **6 September 2026** for the current prototype experience.
 
-**[Open the hosted demo](https://ojashwas.github.io/intdocayaprototype/)** · [Local setup](../README.md#run-locally) · [Architecture](architecture.md)
+**[Open the hosted demo](https://hypermine2050.github.io/Docaya-Pro/)** · [Local setup](../README.md#run-locally) · [Architecture](architecture.md)
 
 This guide describes what the browser prototype actually demonstrates. Records, people and MOI scenarios are synthetic. Authentication, cloud services, AI generation and digital signatures are simulated; this application does not establish production security or compliance.
 
@@ -172,6 +172,6 @@ Validation includes build, lint, unit/integration checks and prototype browser j
 
 ## Publishing the client demo
 
-The hosted URL is **https://ojashwas.github.io/intdocayaprototype/**. Push to `main`: **Prototype quality** runs, then **Publish prototype to GitHub Pages** deploys the exact tested commit after a successful push run. Pull-request runs do not publish. Manual dispatch builds the selected revision without requiring that preceding quality result; validate before using it.
+The canonical repository is **[hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro)** and the hosted URL is **[https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/)**. Push to `main`: **Prototype quality** runs, then **Publish prototype to GitHub Pages** deploys the exact tested commit after a successful push run. Pull-request runs do not publish. Manual dispatch builds the selected revision without requiring that preceding quality result; validate before using it.
 
-Pages builds with `/intdocayaprototype/` as the asset base and uploads only `dist/`. Each client starts with an independent sample workspace. See the [publishing instructions](../README.md#publish-to-github-pages).
+Pages builds with `/Docaya-Pro/` as the asset base and uploads only `dist/`. Each client starts with an independent sample workspace. See the [publishing instructions](../README.md#publish-to-github-pages).

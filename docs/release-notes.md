@@ -2,7 +2,7 @@
 
 ## 6 September 2026 — selected branding and client demo
 
-[Open the live application](https://ojashwas.github.io/intdocayaprototype/) · [Run locally](../README.md#run-locally) · [Client demonstration guide](prototype-demo.md)
+[Open the live application](https://hypermine2050.github.io/Docaya-Pro/) · [Run locally](../README.md#run-locally) · [Client demonstration guide](prototype-demo.md)
 
 ### Approved visual identity
 
@@ -28,7 +28,9 @@ See the [demonstration guide](prototype-demo.md) for the walkthrough and the imp
 
 ### Validation and publishing
 
-The selected-branding application revision [`2350baf`](https://github.com/Ojashwas/intdocayaprototype/commit/2350baf011cc767b09527ae43f71e977f3a3ad8e) passed production build, lint and formatting checks. Desktop and Arabic mobile visual checks found no broken images, page overflow or automated accessibility violations on the checked screens. GitHub's quality workflow, including the prototype browser journeys, and the Pages deployment both succeeded. The published login, main logo, AI logo and favicon were verified against the selected files.
+The canonical repository is [hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro), and GitHub Pages publishes the prototype at [https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/) with `/Docaya-Pro/` as the asset base.
+
+The selected-branding application revision [`2350baf`](https://github.com/hypermine2050/Docaya-Pro/commit/2350baf011cc767b09527ae43f71e977f3a3ad8e) passed production build, lint and formatting checks. Desktop and Arabic mobile visual checks found no broken images, page overflow or automated accessibility violations on the checked screens. GitHub's quality workflow, including the prototype browser journeys, and the Pages deployment both succeeded. The published login, main logo, AI logo and favicon were verified against the selected files.
 
 The [publishing workflow](../.github/workflows/prototype-pages.yml) deploys after a successful push quality run on `main`. See [validation commands](../README.md#validate-changes) and [publishing instructions](../README.md#publish-to-github-pages) for subsequent updates.
 

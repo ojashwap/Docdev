@@ -69,7 +69,7 @@ Role and department rules demonstrate intended visibility and action availabilit
 
 `npm start -- --strictPort` starts Vite on localhost:5173. `npm run build` checks TypeScript and generates `dist/`; `npm run preview -- --host localhost --port 4173 --strictPort` serves a local production preview. See [README setup](../README.md#run-locally).
 
-For automatic publication, [Prototype quality](../.github/workflows/ci.yml) checks a push to `main`; [Publish prototype to GitHub Pages](../.github/workflows/prototype-pages.yml) runs after success and checks out that run's exact `head_sha`. It builds with `DOCAYA_BASE_PATH=/intdocayaprototype/` and publishes only `dist/`. Pull-request runs do not deploy.
+For automatic publication, the canonical repository is [hypermine2050/Docaya-Pro](https://github.com/hypermine2050/Docaya-Pro). [Prototype quality](../.github/workflows/ci.yml) checks a push to `main`; [Publish prototype to GitHub Pages](../.github/workflows/prototype-pages.yml) runs after success and checks out that run's exact `head_sha`. It builds with `DOCAYA_BASE_PATH=/Docaya-Pro/` and publishes only `dist/` to [https://hypermine2050.github.io/Docaya-Pro/](https://hypermine2050.github.io/Docaya-Pro/). Pull-request runs do not deploy.
 
 The Pages workflow also supports manual dispatch using the selected revision (`github.sha`), which does not require the preceding quality result. Manual publishers should validate first. Browser state never enters the deployment artifact.
 
