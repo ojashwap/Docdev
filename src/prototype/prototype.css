@@ -383,13 +383,21 @@
 }
 .p-notification-button i {
   position: absolute;
-  top: 4px;
-  right: 5px;
-  width: 5px;
-  height: 5px;
-  background: #b88e50;
-  border-radius: 50%;
+  top: -2px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  background: #a8371e;
+  color: #fff;
+  border-radius: 999px;
   border: 1px solid white;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 }
 .p-demo-bar {
   display: flex;
@@ -1291,6 +1299,17 @@
 }
 .p-notice-row.unread {
   background: #f8faf3;
+}
+.p-notice-row.alert {
+  background: #fdf6ef;
+  border-inline-start: 3px solid #b88e50;
+}
+.p-notice-row.alert strong {
+  color: #7a4a12;
+}
+.p-queue-icon.alert {
+  background: #f7e8d4;
+  color: #a06414;
 }
 .p-notice-row > div {
   flex: 1;

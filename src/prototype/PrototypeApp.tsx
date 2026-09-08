@@ -1,10 +1,12 @@
 import { local } from './translations'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  AlertTriangle,
   ArrowDownToLine,
   ArrowRight,
   Bell,
   BookOpen,
+  CalendarClock,
   ChartNoAxesCombined,
   Check,
   ChevronRight,
@@ -324,6 +326,15 @@ export default function PrototypeApp() {
   const notices = state.notices.filter((n) => !n.recordId || visible.some((r) => r.id === n.recordId))
   const unread = notices.filter((n) => !n.read).length
   const pending = visible.filter((r) => r.status === 'PendingApproval')
+  const overdueApprovals = pending.filter((r) => new Date(r.due).getTime() < Date.now())
+  const expiringDocs = visible
+    .filter(
+      (r) =>
+        !['Archived', 'Disposed', 'Superseded'].includes(r.status) &&
+        new Date(r.expiry).getTime() - Date.now() < 30 * 86400000,
+    )
+    .sort((a, b) => a.expiry.localeCompare(b.expiry))
+  const attention = overdueApprovals.length + expiringDocs.length
   const allowedNav = navigation
     .filter((n) => n.id !== 'admin' || rights.admin)
     .filter((n) => n.id !== 'audit' || rights.audit)
@@ -609,7 +620,7 @@ export default function PrototypeApp() {
               onClick={() => navigate('notifications')}
             >
               <Bell size={19} />
-              {unread > 0 && <i />}
+              {unread + attention > 0 && <i>{unread + attention}</i>}
             </button>
             <span className="p-avatar">
               {people[role]
@@ -947,6 +958,118 @@ export default function PrototypeApp() {
           {page === 'search' && <SearchPage {...props} initialQuery={globalQuery} />}
           {page === 'notifications' && (
             <>
+              <div className="p-four p-metrics">
+                {[
+                  [
+                    Workflow,
+                    pending.length,
+                    t('Pending my approval', 'بانتظار اعتمادي'),
+                    t('Decisions waiting on you', 'قرارات بانتظارك'),
+                    () => navigate('workflows'),
+                  ],
+                  [
+                    AlertTriangle,
+                    overdueApprovals.length,
+                    t('Overdue approvals', 'اعتمادات متأخرة'),
+                    t('Due date passed, still not approved', 'انقضى الموعد ولم تُعتمد بعد'),
+                    () => {
+                      navigate('workflows')
+                      setApprovalOverdue(true)
+                    },
+                  ],
+                  [
+                    CalendarClock,
+                    expiringDocs.length,
+                    t('Expiring within 30 days', 'تنتهي خلال ٣٠ يوماً'),
+                    t('Review or renew before expiry', 'راجع أو جدّد قبل الانتهاء'),
+                    () => navigate('records'),
+                  ],
+                  [
+                    Bell,
+                    unread,
+                    t('Unread notifications', 'إشعارات غير مقروءة'),
+                    t('System and workflow updates', 'تحديثات النظام ومسارات العمل'),
+                    undefined,
+                  ],
+                ].map(([Icon, count, label, sub, go]) => {
+                  const MetricIcon = Icon as typeof Bell
+                  return (
+                    <button
+                      className="p-card p-metric"
+                      key={String(label)}
+                      onClick={go as (() => void) | undefined}
+                    >
+                      <div>
+                        <span>{String(label)}</span>
+                        <MetricIcon size={20} />
+                      </div>
+                      <strong>{String(count)}</strong>
+                      <small>
+                        {String(sub)}
+                        {go ? <ArrowRight size={14} /> : null}
+                      </small>
+                    </button>
+                  )
+                })}
+              </div>
+              {attention > 0 && (
+                <div className="p-card no-pad">
+                  <div className="p-card-head">
+                    <div>
+                      <p className="p-eyebrow">{t('NEEDS ATTENTION', 'يتطلب الانتباه')}</p>
+                      <h3>{t('Important highlights', 'أبرز التنبيهات المهمة')}</h3>
+                    </div>
+                    <span className="p-count">{attention}</span>
+                  </div>
+                  {overdueApprovals.map((r) => (
+                    <div className="p-notice-row alert" key={`overdue-${r.id}`}>
+                      <span className="p-queue-icon alert">
+                        <AlertTriangle size={18} />
+                      </span>
+                      <div>
+                        <strong>
+                          {t('Approval overdue:', 'اعتماد متأخر:')} {lang === 'ar' ? r.titleAr : r.title}
+                        </strong>
+                        <small>
+                          {local(r.department, lang)} · {t('Due', 'الاستحقاق')}{' '}
+                          {new Date(r.due).toLocaleString(lang)}
+                        </small>
+                        <button className="p-link" onClick={() => open(r)}>
+                          {t('Open document', 'فتح الوثيقة')}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {expiringDocs.map((r) => {
+                    const days = Math.ceil((new Date(r.expiry).getTime() - Date.now()) / 86400000)
+                    return (
+                      <div className="p-notice-row alert" key={`expiry-${r.id}`}>
+                        <span className="p-queue-icon alert">
+                          <CalendarClock size={18} />
+                        </span>
+                        <div>
+                          <strong>
+                            {days < 0
+                              ? t('Document expired:', 'انتهت صلاحية الوثيقة:')
+                              : t('Expiring soon:', 'قرب انتهاء الصلاحية:')}{' '}
+                            {lang === 'ar' ? r.titleAr : r.title}
+                          </strong>
+                          <small>
+                            {local(r.department, lang)} ·{' '}
+                            {days < 0
+                              ? t(`Expired ${Math.abs(days)} day(s) ago`, `انتهت منذ ${Math.abs(days)} يوم`)
+                              : t(`${days} day(s) remaining`, `متبقٍ ${days} يوم`)}{' '}
+                            · {new Date(r.expiry).toLocaleDateString(lang)}
+                          </small>
+                          <button className="p-link" onClick={() => open(r)}>
+                            {t('Open document', 'فتح الوثيقة')}
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
               <div className="p-toolbar">
                 <span>
                   {unread} {t('unread notifications', 'إشعارات غير مقروءة')}
@@ -1207,6 +1330,7 @@ function RegisterPage({ visible, lang, t, onOpen, selectedId }: PageProps) {
     </>
   )
 }
+
 function Workshop({
   state,
   setState,

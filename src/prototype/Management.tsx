@@ -37,7 +37,17 @@ export type PageProps = {
   notify: (text: string) => void
   selectedId?: string
 }
-export function Operations({ state, setState, role, lang, t, visible, onOpen, notify, selectedId }: PageProps) {
+export function Operations({
+  state,
+  setState,
+  role,
+  lang,
+  t,
+  visible,
+  onOpen,
+  notify,
+  selectedId,
+}: PageProps) {
   const [tab, setTab] = useState('staging')
   const [running, setRunning] = useState(false)
   const eligible = visible.filter((r) => r.status === 'Published' && !r.indexed)
@@ -990,9 +1000,21 @@ export function ReportsPage({ state, visible, lang, t, role }: PageProps) {
 }
 export function AuditPage({ state, visible, lang, t }: PageProps) {
   const [query, setQuery] = useState('')
-  const rows = state.audit.filter(
+  const [view, setView] = useState<'document' | 'user'>('document')
+  const [actor, setActor] = useState('')
+  const [doc, setDoc] = useState('')
+  const accessible = state.audit.filter(
+    (a) => !a.object.startsWith('DOC-') || visible.some((r) => r.id === a.object),
+  )
+  const actors = [...new Set(accessible.map((a) => a.actor))].sort()
+  const documents = [
+    ...new Set(accessible.filter((a) => a.object.startsWith('DOC-')).map((a) => a.object)),
+  ].sort()
+  const rows = accessible.filter(
     (a) =>
-      (!a.object.startsWith('DOC-') || visible.some((r) => r.id === a.object)) &&
+      (view === 'document'
+        ? a.object.startsWith('DOC-') && (!doc || a.object === doc)
+        : !actor || a.actor === actor) &&
       `${a.actor} ${a.action} ${a.object} ${a.detail}`.toLowerCase().includes(query.toLowerCase()),
   )
   return (
@@ -1004,7 +1026,50 @@ export function AuditPage({ state, visible, lang, t }: PageProps) {
           'سجل نشاط تجريبي يتضمن الفاعل والدور والمرجع ومعرّف الحدث. تسلسل البصمات والطوابع الزمنية الموثوقة والتخزين غير القابل للتغيير متطلبات إنتاجية لا يوفرها المتصفح.',
         )}
       </div>
+      <div className="p-tabs">
+        {(
+          [
+            ['document', 'Document audit trail', 'سجل تدقيق الوثائق'],
+            ['user', 'User audit trail', 'سجل تدقيق المستخدمين'],
+          ] as const
+        ).map(([id, en, ar]) => (
+          <button key={id} className={view === id ? 'active' : ''} onClick={() => setView(id)}>
+            {t(en, ar)}
+          </button>
+        ))}
+      </div>
       <div className="p-toolbar">
+        {view === 'document' ? (
+          <select
+            value={doc}
+            onChange={(e) => setDoc(e.target.value)}
+            aria-label={t('Filter by document', 'تصفية حسب الوثيقة')}
+          >
+            <option value="">{t('All documents', 'كل الوثائق')}</option>
+            {documents.map((id) => (
+              <option key={id} value={id}>
+                {id} ·{' '}
+                {(() => {
+                  const r = visible.find((x) => x.id === id)
+                  return r ? (lang === 'ar' ? r.titleAr || r.title : r.title) : ''
+                })()}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <select
+            value={actor}
+            onChange={(e) => setActor(e.target.value)}
+            aria-label={t('Filter by user', 'تصفية حسب المستخدم')}
+          >
+            <option value="">{t('All users', 'كل المستخدمين')}</option>
+            {actors.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -1018,7 +1083,7 @@ export function AuditPage({ state, visible, lang, t }: PageProps) {
           className="p-btn"
           onClick={() =>
             downloadFile(
-              'docaya-audit.csv',
+              `docaya-audit-${view}.csv`,
               csv([
                 ['Event ID', 'Timestamp', 'Actor', 'Role', 'Action', 'Object', 'Detail'],
                 ...rows.map((a) => [a.id, a.time, a.actor, a.role, a.action, a.object, a.detail]),
